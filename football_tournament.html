@@ -654,8 +654,13 @@
 
         function loadTournament(tournamentId) {
             const tournament = allTournaments[tournamentId];
-            if (!tournament) return;
+            if (!tournament) {
+                console.error('Tournament not found in allTournaments:', tournamentId);
+                return;
+            }
 
+            console.log('Loading tournament data:', tournament);
+            
             currentTournamentId = tournamentId;
             teams = tournament.teams;
             matches = tournament.matches;
@@ -664,11 +669,21 @@
             playerStats = tournament.playerStats || {};
             keeperStats = tournament.keeperStats || {};
 
+            console.log('Tournament data loaded into variables');
+            console.log('Teams:', teams);
+            console.log('Matches:', matches.length);
+
             // Update UI to show tournament view
-            document.getElementById('setupSection').classList.add('hidden');
-            document.getElementById('matchesSection').classList.remove('hidden');
-            document.getElementById('tableSection').classList.remove('hidden');
-            document.getElementById('leaderboardSection').classList.remove('hidden');
+            const setupSection = document.getElementById('setupSection');
+            const matchesSection = document.getElementById('matchesSection');
+            const tableSection = document.getElementById('tableSection');
+            const leaderboardSection = document.getElementById('leaderboardSection');
+            
+            console.log('Hiding setup section, showing tournament sections...');
+            setupSection.classList.add('hidden');
+            matchesSection.classList.remove('hidden');
+            tableSection.classList.remove('hidden');
+            leaderboardSection.classList.remove('hidden');
             
             document.getElementById('tournamentDateDisplay').style.display = 'block';
             document.getElementById('dateText').textContent = tournamentDate;
@@ -677,9 +692,11 @@
             document.getElementById('adminControls').style.display = 'block';
             document.getElementById('adminStatus').style.display = 'none';
             
+            console.log('Showing WATCH LIVE message...');
             // Show WATCH LIVE message
             showWatchLiveMessage();
             
+            console.log('Rendering tournament data...');
             // Render all the tournament data
             renderMatches();
             updateTable();
@@ -689,6 +706,8 @@
             renderPlayers('red');
             renderPlayers('black');
             renderPlayers('white');
+            
+            console.log('Tournament loaded successfully!');
         }
 
         function deleteTournament(tournamentId) {
@@ -748,24 +767,21 @@
         }
 
         // Initialize tournaments on page load
-        window.addEventListener('load', function() {
-            console.log('Page loaded, initializing tournaments...');
-            loadTournamentsFromStorage();
-            console.log('Tournaments loaded from storage');
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing tournaments...');
             
-            // Check if we're loading a specific tournament
-            if (!loadTournamentFromUrl()) {
+            // Load tournaments from storage first
+            loadTournamentsFromStorage();
+            console.log('Tournaments loaded from storage:', Object.keys(allTournaments));
+            
+            // Check if we're loading a specific tournament from URL
+            const loaded = loadTournamentFromUrl();
+            
+            if (!loaded) {
                 console.log('No tournament to load, showing setup page');
-                // Show admin controls for creating new tournament
+                // Show setup page for creating new tournament
                 document.getElementById('adminControls').style.display = 'none';
             }
-        });
-
-        // Also try to load immediately when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, checking for tournaments...');
-            loadTournamentsFromStorage();
-            loadTournamentFromUrl();
         });
 
         function addPlayer(team) {
