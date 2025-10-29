@@ -857,10 +857,23 @@
             console.log('Tournament loaded successfully!');
         }
 
-        function deleteTournament(tournamentId) {
+        async function deleteTournament(tournamentId) {
             if (confirm('Are you sure you want to delete this tournament? This action cannot be undone.')) {
                 delete allTournaments[tournamentId];
-                saveTournamentToStorage();
+                
+                // Delete from Firebase if using Firebase
+                if (useFirebase && firebaseStorage) {
+                    try {
+                        await firebaseStorage.deleteTournament(tournamentId);
+                        console.log('✅ Deleted from Firebase');
+                    } catch(e) {
+                        console.error('Error deleting from Firebase:', e);
+                    }
+                }
+                
+                // Also save to localStorage to update the local copy
+                localStorage.setItem('footballTournaments', JSON.stringify(allTournaments));
+                console.log('✅ Deleted from localStorage');
                 
                 if (currentTournamentId === tournamentId) {
                     // Reset to setup page
