@@ -1133,18 +1133,18 @@
                         <div class="timer" id="timer-${match.id}">${formatTime(match.timer)}</div>
 
                         <div class="match-controls">
-                            ${match.status === 'pending' ? `
-                                <button class="btn-success" onclick="showKeeperModal(${match.id})" ${!isAdmin ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>Start</button>
+                            ${match.status === 'pending' && isAdmin ? `
+                                <button class="btn-success" onclick="showKeeperModal(${match.id})">Start</button>
                             ` : ''}
                             
-                            ${match.status === 'live' ? `
-                                <button class="btn-warning" onclick="togglePause(${match.id})" id="pauseBtn-${match.id}" ${!isAdmin ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                            ${match.status === 'live' && isAdmin ? `
+                                <button class="btn-warning" onclick="togglePause(${match.id})" id="pauseBtn-${match.id}">
                                     ${match.paused ? '▶️ Resume' : '⏸️ Pause'}
                                 </button>
-                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0;" ${!isAdmin ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0;">
                                     🎲 Random
                                 </button>
-                                <button class="btn-danger" onclick="endMatch(${match.id})" ${!isAdmin ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>End Match</button>
+                                <button class="btn-danger" onclick="endMatch(${match.id})">End Match</button>
                             ` : ''}
                         </div>
 
