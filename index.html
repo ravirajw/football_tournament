@@ -438,7 +438,7 @@
         <div class="section hidden" id="matchesSection">
             <h2>Matches</h2>
             
-            <div class="whatsapp-message-box" id="whatsappMessageBox">
+            <div class="whatsapp-message-box hidden" id="whatsappMessageBox">
                 <h3>
                     <span style="font-size: 1.5em;">📱</span>
                     WhatsApp Message - Share Tournament Info
@@ -754,29 +754,32 @@
         }
 
         function showWatchLiveMessage() {
-            if (currentTournamentId) {
-                const shareLink = getTournamentShareLink(currentTournamentId);
-                const watchLiveDiv = document.getElementById('watchLiveMessage');
-                if (watchLiveDiv) {
-                    watchLiveDiv.style.display = 'block';
-                    document.getElementById('shareLink').textContent = shareLink;
-                } else {
-                    // Create the watch live message if it doesn't exist
-                    const container = document.querySelector('.container');
-                    const watchLiveHTML = `
-                        <div id="watchLiveMessage" style="background: #e8f5e8; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: center;">
-                            <h3 style="color: #28a745; margin: 0 0 10px 0;">📺 WATCH LIVE</h3>
-                            <p style="margin: 5px 0; color: #666;">Share this link to let others watch the tournament:</p>
-                            <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ddd; word-break: break-all; font-family: monospace; margin: 10px 0;">
-                                <span id="shareLink">${shareLink}</span>
-                            </div>
-                            <button onclick="copyShareLink()" class="btn-primary" style="margin: 5px;">📋 Copy Link</button>
-                            ${isAdmin ? '<button onclick="deleteTournament(\'' + currentTournamentId + '\')" class="btn-danger" style="margin: 5px;">🗑️ Delete Tournament</button>' : ''}
+            // Only show WATCH LIVE message for admins
+            if (!isAdmin || !currentTournamentId) {
+                return;
+            }
+            
+            const shareLink = getTournamentShareLink(currentTournamentId);
+            const watchLiveDiv = document.getElementById('watchLiveMessage');
+            if (watchLiveDiv) {
+                watchLiveDiv.style.display = 'block';
+                document.getElementById('shareLink').textContent = shareLink;
+            } else {
+                // Create the watch live message if it doesn't exist
+                const container = document.querySelector('.container');
+                const watchLiveHTML = `
+                    <div id="watchLiveMessage" style="background: #e8f5e8; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: center;">
+                        <h3 style="color: #28a745; margin: 0 0 10px 0;">📺 WATCH LIVE</h3>
+                        <p style="margin: 5px 0; color: #666;">Share this link to let others watch the tournament:</p>
+                        <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ddd; word-break: break-all; font-family: monospace; margin: 10px 0;">
+                            <span id="shareLink">${shareLink}</span>
                         </div>
-                    `;
-                    const setupSection = document.getElementById('setupSection');
-                    setupSection.insertAdjacentHTML('afterend', watchLiveHTML);
-                }
+                        <button onclick="copyShareLink()" class="btn-primary" style="margin: 5px;">📋 Copy Link</button>
+                        <button onclick="deleteTournament('${currentTournamentId}')" class="btn-danger" style="margin: 5px;">🗑️ Delete Tournament</button>
+                    </div>
+                `;
+                const setupSection = document.getElementById('setupSection');
+                setupSection.insertAdjacentHTML('afterend', watchLiveHTML);
             }
         }
 
@@ -1028,9 +1031,11 @@
                 document.getElementById('adminControls').style.display = 'none';
                 document.getElementById('adminStatus').style.display = 'block';
                 
-                // Update WATCH LIVE message to show delete button
+                // Show admin-only elements
                 showWatchLiveMessage();
+                generateWhatsAppMessage();
                 
+                // Re-render matches to show admin controls
                 renderMatches();
                 alert('Successfully logged in as admin');
             } else {
@@ -1895,6 +1900,15 @@
         }
 
         function generateWhatsAppMessage() {
+            // Only show WhatsApp message for admins
+            if (!isAdmin) {
+                document.getElementById('whatsappMessageBox').style.display = 'none';
+                return;
+            }
+            
+            // Show the WhatsApp message box
+            document.getElementById('whatsappMessageBox').classList.remove('hidden');
+            
             let currentUrl = window.location.href;
             
             // Handle special cases for the URL
