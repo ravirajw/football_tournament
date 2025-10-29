@@ -1283,7 +1283,7 @@
                 
                 // Re-render matches to show admin controls
                 renderMatches();
-                alert('Successfully logged in as admin');
+                // No success alert - just login smoothly
             } else {
                 alert('Incorrect password');
             }
@@ -1306,6 +1306,12 @@
             // Clear admin session
             if (currentTournamentId) {
                 sessionStorage.removeItem(`admin_${currentTournamentId}`);
+            }
+            
+            // Hide WATCH LIVE message
+            const watchLiveDiv = document.getElementById('watchLiveMessage');
+            if (watchLiveDiv) {
+                watchLiveDiv.style.display = 'none';
             }
             
             document.getElementById('adminStatus').style.display = 'none';
