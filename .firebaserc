@@ -1,5 +1,5 @@
-# Firebase Hosting Setup
-
-firebase-debug.log
-.firebase/
-node_modules/
+{
+  "projects": {
+    "default": "your-project-id"
+  }
+}
