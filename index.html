@@ -580,6 +580,16 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase Configuration (update with your credentials) -->
+    <script src="js/firebase-config.js"></script>
+    
+    <!-- Firebase Storage Manager -->
+    <script src="js/firebase-storage.js"></script>
+
     <script>
         let teams = {
             red: { name: 'Red', players: [], color: '#d32f2f' },
@@ -608,16 +618,79 @@
         let isAdmin = false;
         let currentTournamentId = null;
         let allTournaments = {};
+        
+        // Firebase integration
+        let firebaseStorage = null;
+        let useFirebase = false;
+        
+        // Initialize Firebase Storage Manager
+        function initializeFirebase() {
+            try {
+                if (typeof firebase !== 'undefined' && typeof FirebaseStorageManager !== 'undefined') {
+                    firebaseStorage = new FirebaseStorageManager();
+                    if (firebaseStorage.initialize()) {
+                        useFirebase = true;
+                        console.log('✅ Using Firebase for storage');
+                        return true;
+                    }
+                }
+            } catch(e) {
+                console.warn('⚠️ Firebase not available, falling back to localStorage:', e);
+            }
+            
+            useFirebase = false;
+            console.log('📦 Using localStorage for storage');
+            return false;
+        }
 
         // Tournament management functions
         function generateTournamentId() {
             return 'tournament_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
-        function loadTournamentsFromStorage() {
-            console.log('Loading tournaments from localStorage...');
-            const stored = localStorage.getItem('footballTournaments');
-            console.log('Raw localStorage data:', stored);
+        async function loadTournamentsFromStorage() {
+            if (useFirebase && firebaseStorage) {
+                console.log('Loading tournaments from Firebase...');
+                try {
+                    allTournaments = await firebaseStorage.loadTournaments();
+                    console.log('Loaded from Firebase:', allTournaments);
+                } catch(e) {
+                    console.error('Error loading from Firebase:', e);
+                    allTournaments = {};
+                }
+            } else {
+                console.log('Loading tournaments from localStorage...');
+                const stored = localStorage.getItem('footballTournaments');
+                console.log('Raw localStorage data:', stored);
+                
+                if (stored) {
+                    try {
+                        allTournaments = JSON.parse(stored);
+                        console.log('Successfully parsed tournaments:', allTournaments);
+                    } catch(e) {
+                        console.error('Error parsing tournaments from localStorage:', e);
+                        allTournaments = {};
+                    }
+                } else {
+                    console.log('No tournaments found in localStorage');
+                    allTournaments = {};
+                }
+            }
+        }
+
+        async function saveTournamentToStorage() {
+            if (useFirebase && firebaseStorage && currentTournamentId) {
+                try {
+                    await firebaseStorage.saveTournament(currentTournamentId, allTournaments[currentTournamentId]);
+                    console.log('✅ Saved to Firebase');
+                } catch(e) {
+                    console.error('Error saving to Firebase:', e);
+                }
+            } else {
+                localStorage.setItem('footballTournaments', JSON.stringify(allTournaments));
+                console.log('✅ Saved to localStorage');
+            }
+        }
             
             if (stored) {
                 try {
@@ -633,25 +706,46 @@
             }
         }
 
-        function saveTournamentToStorage() {
-            localStorage.setItem('footballTournaments', JSON.stringify(allTournaments));
-        }
-
         function getTournamentShareLink(tournamentId) {
             return window.location.href.split('?')[0] + '?tournament=' + tournamentId;
         }
 
-        function loadTournamentFromUrl() {
+        async function loadTournamentFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             const tournamentId = urlParams.get('tournament');
             
             if (tournamentId) {
                 console.log('Checking tournament ID:', tournamentId);
+                
+                // If using Firebase, try to load directly from Firestore
+                if (useFirebase && firebaseStorage) {
+                    try {
+                        const tournamentData = await firebaseStorage.getTournament(tournamentId);
+                        if (tournamentData) {
+                            allTournaments[tournamentId] = tournamentData;
+                            console.log('✅ Loaded tournament from Firebase:', tournamentId);
+                            loadTournament(tournamentId);
+                            
+                            // Set up real-time listener for Firebase
+                            setupFirebaseListener(tournamentId);
+                            return true;
+                        }
+                    } catch(e) {
+                        console.error('Error loading from Firebase:', e);
+                    }
+                }
+                
+                // Fallback to checking loaded tournaments
                 console.log('Available tournaments:', Object.keys(allTournaments));
                 
                 if (allTournaments[tournamentId]) {
                     console.log('✅ Loading tournament:', tournamentId);
                     loadTournament(tournamentId);
+                    
+                    // Set up real-time listener for Firebase
+                    if (useFirebase && firebaseStorage) {
+                        setupFirebaseListener(tournamentId);
+                    }
                     return true;
                 } else {
                     console.error('❌ Tournament not found in storage!');
@@ -664,11 +758,11 @@
                     errorMsg.style.cssText = 'background: #ffebee; border: 2px solid #f44336; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;';
                     errorMsg.innerHTML = `
                         <h3 style="color: #d32f2f; margin-bottom: 10px;">⚠️ Tournament Not Found</h3>
-                        <p>The tournament you're looking for doesn't exist in this browser's storage.</p>
+                        <p>The tournament you're looking for doesn't exist.</p>
                         <p style="margin-top: 10px;"><strong>Possible reasons:</strong></p>
                         <ul style="text-align: left; max-width: 500px; margin: 10px auto;">
-                            <li>The tournament was created in a different browser or incognito window</li>
-                            <li>The browser's localStorage was cleared</li>
+                            <li>The tournament was created in a different browser (if using localStorage)</li>
+                            <li>The browser's storage was cleared</li>
                             <li>The tournament was deleted</li>
                         </ul>
                         <p style="margin-top: 15px; font-size: 0.9em; color: #666;">Tournament ID: <code>${tournamentId}</code></p>
@@ -680,6 +774,34 @@
                 }
             }
             return false;
+        }
+        
+        // Setup Firebase real-time listener
+        function setupFirebaseListener(tournamentId) {
+            if (!useFirebase || !firebaseStorage) return;
+            
+            console.log('🔥 Setting up Firebase real-time listener...');
+            firebaseStorage.listenToTournament(tournamentId, (updatedData) => {
+                if (updatedData && currentTournamentId === tournamentId) {
+                    console.log('🔥 Tournament updated from Firebase!');
+                    
+                    // Update local data
+                    allTournaments[tournamentId] = updatedData;
+                    
+                    // Reload tournament UI
+                    teams = updatedData.teams;
+                    matches = updatedData.matches;
+                    standings = updatedData.standings;
+                    playerStats = updatedData.playerStats || {};
+                    keeperStats = updatedData.keeperStats || {};
+                    
+                    // Re-render UI
+                    renderMatches();
+                    updateTable();
+                    updateLeaderboard();
+                    updateLiveMatchTimers();
+                }
+            });
         }
 
         function loadTournament(tournamentId) {
@@ -800,18 +922,21 @@
         }
 
         // Initialize tournaments on page load
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', async function() {
             console.log('=== TOURNAMENT MANAGER INITIALIZATION ===');
             console.log('Current URL:', window.location.href);
             console.log('URL Search params:', window.location.search);
             
+            // Initialize Firebase
+            initializeFirebase();
+            
             // Load tournaments from storage first
-            loadTournamentsFromStorage();
+            await loadTournamentsFromStorage();
             console.log('Tournaments loaded from storage:', Object.keys(allTournaments));
             console.log('All tournament data:', allTournaments);
             
             // Check if we're loading a specific tournament from URL
-            const loaded = loadTournamentFromUrl();
+            const loaded = await loadTournamentFromUrl();
             
             if (!loaded) {
                 console.log('No tournament to load, showing setup page');
@@ -819,14 +944,22 @@
                 document.getElementById('adminControls').style.display = 'none';
             } else {
                 console.log('Tournament loaded from URL successfully');
-                // Start real-time sync for tournament viewers
-                startRealTimeSync();
+                // If not using Firebase, start localStorage polling
+                if (!useFirebase) {
+                    startRealTimeSync();
+                }
+                // Firebase uses real-time listeners instead
             }
         });
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', function() {
             stopRealTimeSync();
+            
+            // Stop Firebase listeners
+            if (useFirebase && firebaseStorage) {
+                firebaseStorage.stopAllListeners();
+            }
         });
 
         // Real-time synchronization
@@ -1148,13 +1281,14 @@
             }
         }
 
-        function updateTournamentStorage() {
+        async function updateTournamentStorage() {
             if (currentTournamentId && allTournaments[currentTournamentId]) {
                 allTournaments[currentTournamentId].teams = JSON.parse(JSON.stringify(teams));
                 allTournaments[currentTournamentId].matches = JSON.parse(JSON.stringify(matches));
+                allTournaments[currentTournamentId].standings = JSON.parse(JSON.stringify(standings));
                 allTournaments[currentTournamentId].playerStats = JSON.parse(JSON.stringify(playerStats));
                 allTournaments[currentTournamentId].keeperStats = JSON.parse(JSON.stringify(keeperStats));
-                saveTournamentToStorage();
+                await saveTournamentToStorage();
             }
         }
 
