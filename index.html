@@ -1482,10 +1482,18 @@
             match.status = 'live';
             match.paused = false;
             
+            let secondsCounter = 0;
             match.interval = setInterval(() => {
                 if (!match.paused) {
                     match.timer--;
                     document.getElementById(`timer-${matchId}`).textContent = formatTime(match.timer);
+                    
+                    // Save to storage every 5 seconds to keep Firebase in sync
+                    secondsCounter++;
+                    if (secondsCounter >= 5) {
+                        secondsCounter = 0;
+                        updateTournamentStorage();
+                    }
                     
                     if (match.timer <= 0) {
                         endMatch(matchId);
@@ -1633,10 +1641,12 @@
 
             updateStandings(match);
             
+            // Save immediately before rendering to ensure timer is synced
+            updateTournamentStorage();
+            
             renderMatches();
             updateTable();
             updateLeaderboard();
-            updateTournamentStorage();
 
             const roundRobinMatches = matches.filter(m => m.round !== 'final');
             const allComplete = roundRobinMatches.every(m => m.status === 'completed');
