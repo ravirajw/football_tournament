@@ -615,9 +615,21 @@
         }
 
         function loadTournamentsFromStorage() {
+            console.log('Loading tournaments from localStorage...');
             const stored = localStorage.getItem('footballTournaments');
+            console.log('Raw localStorage data:', stored);
+            
             if (stored) {
-                allTournaments = JSON.parse(stored);
+                try {
+                    allTournaments = JSON.parse(stored);
+                    console.log('Successfully parsed tournaments:', allTournaments);
+                } catch(e) {
+                    console.error('Error parsing tournaments from localStorage:', e);
+                    allTournaments = {};
+                }
+            } else {
+                console.log('No tournaments found in localStorage');
+                allTournaments = {};
             }
         }
 
@@ -768,19 +780,24 @@
 
         // Initialize tournaments on page load
         window.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing tournaments...');
+            console.log('=== TOURNAMENT MANAGER INITIALIZATION ===');
+            console.log('Current URL:', window.location.href);
+            console.log('URL Search params:', window.location.search);
             
             // Load tournaments from storage first
             loadTournamentsFromStorage();
             console.log('Tournaments loaded from storage:', Object.keys(allTournaments));
+            console.log('All tournament data:', allTournaments);
             
             // Check if we're loading a specific tournament from URL
             const loaded = loadTournamentFromUrl();
             
             if (!loaded) {
                 console.log('No tournament to load, showing setup page');
-                // Show setup page for creating new tournament
+                // Show setup page for creating new tournament (already visible by default)
                 document.getElementById('adminControls').style.display = 'none';
+            } else {
+                console.log('Tournament loaded from URL successfully');
             }
         });
 
