@@ -633,9 +633,21 @@
             const urlParams = new URLSearchParams(window.location.search);
             const tournamentId = urlParams.get('tournament');
             
-            if (tournamentId && allTournaments[tournamentId]) {
-                loadTournament(tournamentId);
-                return true;
+            if (tournamentId) {
+                console.log('Checking tournament ID:', tournamentId);
+                console.log('Available tournaments:', Object.keys(allTournaments));
+                
+                if (allTournaments[tournamentId]) {
+                    console.log('Loading tournament:', tournamentId);
+                    loadTournament(tournamentId);
+                    return true;
+                } else {
+                    console.log('Tournament not found in storage');
+                    alert('Tournament not found. It may have been deleted or the link is invalid.');
+                    // Redirect to main page
+                    window.location.href = window.location.href.split('?')[0];
+                    return false;
+                }
             }
             return false;
         }
@@ -652,7 +664,7 @@
             playerStats = tournament.playerStats || {};
             keeperStats = tournament.keeperStats || {};
 
-            // Update UI
+            // Update UI to show tournament view
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('matchesSection').classList.remove('hidden');
             document.getElementById('tableSection').classList.remove('hidden');
@@ -661,15 +673,22 @@
             document.getElementById('tournamentDateDisplay').style.display = 'block';
             document.getElementById('dateText').textContent = tournamentDate;
             
-            // Show admin controls for login
+            // Show admin controls for login (not admin status)
             document.getElementById('adminControls').style.display = 'block';
+            document.getElementById('adminStatus').style.display = 'none';
             
             // Show WATCH LIVE message
             showWatchLiveMessage();
             
+            // Render all the tournament data
             renderMatches();
             updateTable();
             updateLeaderboard();
+            
+            // Also render the team players in case we need to see them
+            renderPlayers('red');
+            renderPlayers('black');
+            renderPlayers('white');
         }
 
         function deleteTournament(tournamentId) {
@@ -730,13 +749,23 @@
 
         // Initialize tournaments on page load
         window.addEventListener('load', function() {
+            console.log('Page loaded, initializing tournaments...');
             loadTournamentsFromStorage();
+            console.log('Tournaments loaded from storage');
             
             // Check if we're loading a specific tournament
             if (!loadTournamentFromUrl()) {
+                console.log('No tournament to load, showing setup page');
                 // Show admin controls for creating new tournament
                 document.getElementById('adminControls').style.display = 'none';
             }
+        });
+
+        // Also try to load immediately when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, checking for tournaments...');
+            loadTournamentsFromStorage();
+            loadTournamentFromUrl();
         });
 
         function addPlayer(team) {
@@ -900,7 +929,10 @@
                 keeperStats: JSON.parse(JSON.stringify(keeperStats)),
                 created: new Date().toISOString()
             };
+            console.log('Saving tournament to storage:', currentTournamentId);
+            console.log('Tournament data:', allTournaments[currentTournamentId]);
             saveTournamentToStorage();
+            console.log('Tournament saved to localStorage');
 
             // Update URL to include tournament ID
             const newUrl = getTournamentShareLink(currentTournamentId);
