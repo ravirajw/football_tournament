@@ -1612,6 +1612,7 @@
             const match = matches.find(m => m.id === matchId);
             clearInterval(match.interval);
             match.status = 'completed';
+            // Timer is already at the stopped value, no need to reset it
 
             const keeper1Id = `${match.team1}-${match.keeper1}`;
             const keeper2Id = `${match.team2}-${match.keeper2}`;
