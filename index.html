@@ -650,14 +650,32 @@
                 console.log('Available tournaments:', Object.keys(allTournaments));
                 
                 if (allTournaments[tournamentId]) {
-                    console.log('Loading tournament:', tournamentId);
+                    console.log('✅ Loading tournament:', tournamentId);
                     loadTournament(tournamentId);
                     return true;
                 } else {
-                    console.log('Tournament not found in storage');
-                    alert('Tournament not found. It may have been deleted or the link is invalid.');
-                    // Redirect to main page
-                    window.location.href = window.location.href.split('?')[0];
+                    console.error('❌ Tournament not found in storage!');
+                    console.error('Requested ID:', tournamentId);
+                    console.error('Available IDs:', Object.keys(allTournaments));
+                    
+                    // Show error message to user
+                    const container = document.querySelector('.container');
+                    const errorMsg = document.createElement('div');
+                    errorMsg.style.cssText = 'background: #ffebee; border: 2px solid #f44336; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;';
+                    errorMsg.innerHTML = `
+                        <h3 style="color: #d32f2f; margin-bottom: 10px;">⚠️ Tournament Not Found</h3>
+                        <p>The tournament you're looking for doesn't exist in this browser's storage.</p>
+                        <p style="margin-top: 10px;"><strong>Possible reasons:</strong></p>
+                        <ul style="text-align: left; max-width: 500px; margin: 10px auto;">
+                            <li>The tournament was created in a different browser or incognito window</li>
+                            <li>The browser's localStorage was cleared</li>
+                            <li>The tournament was deleted</li>
+                        </ul>
+                        <p style="margin-top: 15px; font-size: 0.9em; color: #666;">Tournament ID: <code>${tournamentId}</code></p>
+                        <button onclick="location.href='/'" class="btn-primary" style="margin-top: 15px;">Create New Tournament</button>
+                    `;
+                    container.insertBefore(errorMsg, container.firstChild);
+                    
                     return false;
                 }
             }
