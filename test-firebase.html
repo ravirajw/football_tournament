@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firebase Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .pending { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #5568d3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔥 Firebase Connection Test</h1>
+    
+    <div class="test-card">
+        <h2>1. Firebase SDK Status</h2>
+        <div id="sdkStatus" class="status pending">⏳ Checking...</div>
+    </div>
+    
+    <div class="test-card">
+        <h2>2. Firebase Config Status</h2>
+        <div id="configStatus" class="status pending">⏳ Checking...</div>
+        <pre id="configDetails"></pre>
+    </div>
+    
+    <div class="test-card">
+        <h2>3. Firestore Connection Test</h2>
+        <div id="firestoreStatus" class="status pending">⏳ Not tested yet</div>
+        <button onclick="testFirestore()">Test Firestore Connection</button>
+        <pre id="firestoreDetails"></pre>
+    </div>
+    
+    <div class="test-card">
+        <h2>4. Write/Read Test</h2>
+        <div id="writeReadStatus" class="status pending">⏳ Not tested yet</div>
+        <button onclick="testWriteRead()">Test Write & Read</button>
+        <pre id="writeReadDetails"></pre>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script>
+        // Test 1: Check Firebase SDK
+        setTimeout(() => {
+            if (typeof firebase !== 'undefined') {
+                document.getElementById('sdkStatus').className = 'status success';
+                document.getElementById('sdkStatus').textContent = '✅ Firebase SDK loaded successfully';
+            } else {
+                document.getElementById('sdkStatus').className = 'status error';
+                document.getElementById('sdkStatus').textContent = '❌ Firebase SDK not loaded';
+            }
+        }, 1000);
+
+        // Test 2: Check Firebase Config
+        setTimeout(() => {
+            try {
+                if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+                    const app = firebase.apps[0];
+                    const config = app.options;
+                    
+                    document.getElementById('configStatus').className = 'status success';
+                    document.getElementById('configStatus').textContent = '✅ Firebase configured successfully';
+                    
+                    document.getElementById('configDetails').textContent = 
+                        'Project ID: ' + config.projectId + '\n' +
+                        'Auth Domain: ' + config.authDomain + '\n' +
+                        'Storage Bucket: ' + config.storageBucket;
+                } else {
+                    throw new Error('Firebase not initialized');
+                }
+            } catch(e) {
+                document.getElementById('configStatus').className = 'status error';
+                document.getElementById('configStatus').textContent = '❌ Firebase config error: ' + e.message;
+            }
+        }, 1500);
+
+        // Test 3: Test Firestore Connection
+        function testFirestore() {
+            const statusEl = document.getElementById('firestoreStatus');
+            const detailsEl = document.getElementById('firestoreDetails');
+            
+            statusEl.className = 'status pending';
+            statusEl.textContent = '⏳ Testing Firestore connection...';
+            detailsEl.textContent = '';
+            
+            try {
+                const db = firebase.firestore();
+                statusEl.className = 'status success';
+                statusEl.textContent = '✅ Firestore initialized successfully';
+                detailsEl.textContent = 'Firestore instance created. Ready to read/write data.';
+            } catch(e) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ Firestore initialization failed';
+                detailsEl.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        // Test 4: Test Write and Read
+        async function testWriteRead() {
+            const statusEl = document.getElementById('writeReadStatus');
+            const detailsEl = document.getElementById('writeReadDetails');
+            
+            statusEl.className = 'status pending';
+            statusEl.textContent = '⏳ Testing write/read operations...';
+            detailsEl.textContent = '';
+            
+            try {
+                const db = firebase.firestore();
+                const testId = 'test_' + Date.now();
+                const testData = {
+                    timestamp: new Date().toISOString(),
+                    message: 'Firebase test successful!'
+                };
+                
+                // Write test
+                detailsEl.textContent = 'Writing test data...\n';
+                await db.collection('tournaments').doc(testId).set(testData);
+                detailsEl.textContent += '✅ Write successful\n\n';
+                
+                // Read test
+                detailsEl.textContent += 'Reading test data...\n';
+                const doc = await db.collection('tournaments').doc(testId).get();
+                
+                if (doc.exists) {
+                    detailsEl.textContent += '✅ Read successful\n\n';
+                    detailsEl.textContent += 'Retrieved data:\n' + JSON.stringify(doc.data(), null, 2);
+                    
+                    // Delete test
+                    await db.collection('tournaments').doc(testId).delete();
+                    detailsEl.textContent += '\n\n✅ Cleanup successful';
+                    
+                    statusEl.className = 'status success';
+                    statusEl.textContent = '✅ All Firestore operations successful!';
+                } else {
+                    throw new Error('Document not found after write');
+                }
+            } catch(e) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ Firestore operation failed';
+                detailsEl.textContent += '\n\nError: ' + e.message + '\n\n';
+                detailsEl.textContent += 'Possible issues:\n';
+                detailsEl.textContent += '- Firestore database not enabled in Firebase Console\n';
+                detailsEl.textContent += '- Firestore security rules blocking access\n';
+                detailsEl.textContent += '- Network connectivity issues';
+            }
+        }
+    </script>
+</body>
+</html>
