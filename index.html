@@ -802,10 +802,20 @@
             currentTournamentId = tournamentId;
             teams = tournament.teams;
             matches = tournament.matches;
+            standings = tournament.standings;
             tournamentDate = tournament.date;
             adminPassword = tournament.adminPassword;
             playerStats = tournament.playerStats || {};
             keeperStats = tournament.keeperStats || {};
+
+            // Check if admin session exists for this tournament
+            const isAdminSession = sessionStorage.getItem(`admin_${tournamentId}`) === 'true';
+            if (isAdminSession) {
+                isAdmin = true;
+                console.log('Admin session restored');
+            } else {
+                isAdmin = false;
+            }
 
             console.log('Tournament data loaded into variables');
             console.log('Teams:', teams);
@@ -826,9 +836,14 @@
             document.getElementById('tournamentDateDisplay').style.display = 'block';
             document.getElementById('dateText').textContent = tournamentDate;
             
-            // Show admin controls for login (not admin status)
-            document.getElementById('adminControls').style.display = 'block';
-            document.getElementById('adminStatus').style.display = 'none';
+            // Show admin status or login button based on session
+            if (isAdmin) {
+                document.getElementById('adminControls').style.display = 'none';
+                document.getElementById('adminStatus').style.display = 'block';
+            } else {
+                document.getElementById('adminControls').style.display = 'block';
+                document.getElementById('adminStatus').style.display = 'none';
+            }
             
             console.log('Showing WATCH LIVE message...');
             // Show WATCH LIVE message
@@ -1140,6 +1155,9 @@
 
             // Generate unique tournament ID
             currentTournamentId = generateTournamentId();
+            
+            // Store admin session for this tournament
+            sessionStorage.setItem(`admin_${currentTournamentId}`, 'true');
 
             const now = new Date();
             tournamentDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -1250,6 +1268,10 @@
             
             if (enteredPassword === adminPassword) {
                 isAdmin = true;
+                
+                // Store admin session for this tournament
+                sessionStorage.setItem(`admin_${currentTournamentId}`, 'true');
+                
                 document.getElementById('adminLoginModal').style.display = 'none';
                 document.getElementById('adminLoginInput').value = '';
                 document.getElementById('adminControls').style.display = 'none';
@@ -1280,6 +1302,12 @@
 
         function logoutAdmin() {
             isAdmin = false;
+            
+            // Clear admin session
+            if (currentTournamentId) {
+                sessionStorage.removeItem(`admin_${currentTournamentId}`);
+            }
+            
             document.getElementById('adminStatus').style.display = 'none';
             document.getElementById('adminControls').style.display = 'block';
             renderMatches();
