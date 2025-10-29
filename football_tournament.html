@@ -606,6 +606,138 @@
         let tournamentDate = null;
         let adminPassword = null;
         let isAdmin = false;
+        let currentTournamentId = null;
+        let allTournaments = {};
+
+        // Tournament management functions
+        function generateTournamentId() {
+            return 'tournament_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function loadTournamentsFromStorage() {
+            const stored = localStorage.getItem('footballTournaments');
+            if (stored) {
+                allTournaments = JSON.parse(stored);
+            }
+        }
+
+        function saveTournamentToStorage() {
+            localStorage.setItem('footballTournaments', JSON.stringify(allTournaments));
+        }
+
+        function getTournamentShareLink(tournamentId) {
+            return window.location.href.split('?')[0] + '?tournament=' + tournamentId;
+        }
+
+        function loadTournamentFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tournamentId = urlParams.get('tournament');
+            
+            if (tournamentId && allTournaments[tournamentId]) {
+                loadTournament(tournamentId);
+                return true;
+            }
+            return false;
+        }
+
+        function loadTournament(tournamentId) {
+            const tournament = allTournaments[tournamentId];
+            if (!tournament) return;
+
+            currentTournamentId = tournamentId;
+            teams = tournament.teams;
+            matches = tournament.matches;
+            tournamentDate = tournament.date;
+            adminPassword = tournament.adminPassword;
+            playerStats = tournament.playerStats || {};
+            keeperStats = tournament.keeperStats || {};
+
+            // Update UI
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('matchesSection').classList.remove('hidden');
+            document.getElementById('tableSection').classList.remove('hidden');
+            document.getElementById('leaderboardSection').classList.remove('hidden');
+            
+            document.getElementById('tournamentDateDisplay').style.display = 'block';
+            document.getElementById('dateText').textContent = tournamentDate;
+            
+            // Show admin controls for login
+            document.getElementById('adminControls').style.display = 'block';
+            
+            // Show WATCH LIVE message
+            showWatchLiveMessage();
+            
+            renderMatches();
+            updateTable();
+            updateLeaderboard();
+        }
+
+        function deleteTournament(tournamentId) {
+            if (confirm('Are you sure you want to delete this tournament? This action cannot be undone.')) {
+                delete allTournaments[tournamentId];
+                saveTournamentToStorage();
+                
+                if (currentTournamentId === tournamentId) {
+                    // Reset to setup page
+                    location.href = location.href.split('?')[0];
+                }
+                alert('Tournament deleted successfully.');
+            }
+        }
+
+        function showWatchLiveMessage() {
+            if (currentTournamentId) {
+                const shareLink = getTournamentShareLink(currentTournamentId);
+                const watchLiveDiv = document.getElementById('watchLiveMessage');
+                if (watchLiveDiv) {
+                    watchLiveDiv.style.display = 'block';
+                    document.getElementById('shareLink').textContent = shareLink;
+                } else {
+                    // Create the watch live message if it doesn't exist
+                    const container = document.querySelector('.container');
+                    const watchLiveHTML = `
+                        <div id="watchLiveMessage" style="background: #e8f5e8; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: center;">
+                            <h3 style="color: #28a745; margin: 0 0 10px 0;">📺 WATCH LIVE</h3>
+                            <p style="margin: 5px 0; color: #666;">Share this link to let others watch the tournament:</p>
+                            <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ddd; word-break: break-all; font-family: monospace; margin: 10px 0;">
+                                <span id="shareLink">${shareLink}</span>
+                            </div>
+                            <button onclick="copyShareLink()" class="btn-primary" style="margin: 5px;">📋 Copy Link</button>
+                            ${isAdmin ? '<button onclick="deleteTournament(\'' + currentTournamentId + '\')" class="btn-danger" style="margin: 5px;">🗑️ Delete Tournament</button>' : ''}
+                        </div>
+                    `;
+                    const setupSection = document.getElementById('setupSection');
+                    setupSection.insertAdjacentHTML('afterend', watchLiveHTML);
+                }
+            }
+        }
+
+        function copyShareLink() {
+            const shareLink = document.getElementById('shareLink').textContent;
+            navigator.clipboard.writeText(shareLink).then(() => {
+                alert('Tournament link copied to clipboard!');
+            }).catch(() => {
+                // Fallback for browsers that don't support clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = shareLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Tournament link copied to clipboard!');
+            });
+        }
+
+        // Initialize tournaments on page load
+        window.addEventListener('load', function() {
+            loadTournamentsFromStorage();
+            
+            // Check if we're loading a specific tournament
+            if (!loadTournamentFromUrl()) {
+                // Show admin controls for creating new tournament
+                document.getElementById('adminControls').style.display = 'none';
+            }
+        });
 
         function addPlayer(team) {
             const input = document.getElementById(`${team}PlayerInput`);
@@ -699,6 +831,9 @@
             isAdmin = true;
             document.getElementById('adminPasswordModal').style.display = 'none';
 
+            // Generate unique tournament ID
+            currentTournamentId = generateTournamentId();
+
             const now = new Date();
             tournamentDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -754,6 +889,23 @@
                 });
             }
 
+            // Save tournament to storage
+            allTournaments[currentTournamentId] = {
+                id: currentTournamentId,
+                teams: JSON.parse(JSON.stringify(teams)),
+                matches: JSON.parse(JSON.stringify(matches)),
+                date: tournamentDate,
+                adminPassword: adminPassword,
+                playerStats: JSON.parse(JSON.stringify(playerStats)),
+                keeperStats: JSON.parse(JSON.stringify(keeperStats)),
+                created: new Date().toISOString()
+            };
+            saveTournamentToStorage();
+
+            // Update URL to include tournament ID
+            const newUrl = getTournamentShareLink(currentTournamentId);
+            window.history.pushState({}, '', newUrl);
+
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('matchesSection').classList.remove('hidden');
             document.getElementById('tableSection').classList.remove('hidden');
@@ -764,6 +916,9 @@
             
             document.getElementById('adminStatus').style.display = 'block';
             document.getElementById('adminControls').style.display = 'none';
+            
+            // Show WATCH LIVE message
+            showWatchLiveMessage();
             
             generateWhatsAppMessage();
             renderMatches();
@@ -789,10 +944,24 @@
                 document.getElementById('adminLoginInput').value = '';
                 document.getElementById('adminControls').style.display = 'none';
                 document.getElementById('adminStatus').style.display = 'block';
+                
+                // Update WATCH LIVE message to show delete button
+                showWatchLiveMessage();
+                
                 renderMatches();
                 alert('Successfully logged in as admin');
             } else {
                 alert('Incorrect password');
+            }
+        }
+
+        function updateTournamentStorage() {
+            if (currentTournamentId && allTournaments[currentTournamentId]) {
+                allTournaments[currentTournamentId].teams = JSON.parse(JSON.stringify(teams));
+                allTournaments[currentTournamentId].matches = JSON.parse(JSON.stringify(matches));
+                allTournaments[currentTournamentId].playerStats = JSON.parse(JSON.stringify(playerStats));
+                allTournaments[currentTournamentId].keeperStats = JSON.parse(JSON.stringify(keeperStats));
+                saveTournamentToStorage();
             }
         }
 
@@ -929,11 +1098,10 @@
                     }
                 }
             }, 1000);
-
+            
             renderMatches();
-        }
-
-        function togglePause(matchId) {
+            updateTournamentStorage();
+        }        function togglePause(matchId) {
             if (!checkAdmin()) return;
             
             const match = matches.find(m => m.id === matchId);
@@ -1068,6 +1236,7 @@
             renderMatches();
             updateTable();
             updateLeaderboard();
+            updateTournamentStorage();
 
             const roundRobinMatches = matches.filter(m => m.round !== 'final');
             const allComplete = roundRobinMatches.every(m => m.status === 'completed');
@@ -1269,6 +1438,7 @@
             } else {
                 renderMatches();
                 updateLeaderboard();
+                updateTournamentStorage();
             }
         }
 
@@ -1302,6 +1472,7 @@
             } else {
                 renderMatches();
                 updateLeaderboard();
+                updateTournamentStorage();
             }
         }
 
@@ -1327,6 +1498,7 @@
 
             renderMatches();
             updateLeaderboard();
+            updateTournamentStorage();
         }
 
         function closeEventModal() {
