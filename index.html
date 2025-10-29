@@ -691,20 +691,6 @@
                 console.log('✅ Saved to localStorage');
             }
         }
-            
-            if (stored) {
-                try {
-                    allTournaments = JSON.parse(stored);
-                    console.log('Successfully parsed tournaments:', allTournaments);
-                } catch(e) {
-                    console.error('Error parsing tournaments from localStorage:', e);
-                    allTournaments = {};
-                }
-            } else {
-                console.log('No tournaments found in localStorage');
-                allTournaments = {};
-            }
-        }
 
         function getTournamentShareLink(tournamentId) {
             return window.location.href.split('?')[0] + '?tournament=' + tournamentId;
