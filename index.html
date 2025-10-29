@@ -1336,6 +1336,8 @@
 
         async function updateTournamentStorage() {
             if (currentTournamentId && allTournaments[currentTournamentId]) {
+                console.log('Saving matches to storage. Timer values:', matches.map(m => ({ id: m.id, timer: m.timer, status: m.status })));
+                
                 allTournaments[currentTournamentId].teams = JSON.parse(JSON.stringify(teams));
                 allTournaments[currentTournamentId].matches = JSON.parse(JSON.stringify(matches));
                 allTournaments[currentTournamentId].standings = JSON.parse(JSON.stringify(standings));
@@ -1610,9 +1612,14 @@
         function endMatch(matchId) {
             if (!checkAdmin()) return;
             const match = matches.find(m => m.id === matchId);
+            
+            console.log('Ending match - Timer before:', match.timer);
+            
             clearInterval(match.interval);
             match.status = 'completed';
             // Timer is already at the stopped value, no need to reset it
+            
+            console.log('Match status set to completed - Timer after:', match.timer);
 
             const keeper1Id = `${match.team1}-${match.keeper1}`;
             const keeper2Id = `${match.team2}-${match.keeper2}`;
