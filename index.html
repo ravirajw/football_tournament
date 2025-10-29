@@ -819,8 +819,113 @@
                 document.getElementById('adminControls').style.display = 'none';
             } else {
                 console.log('Tournament loaded from URL successfully');
+                // Start real-time sync for tournament viewers
+                startRealTimeSync();
             }
         });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            stopRealTimeSync();
+        });
+
+        // Real-time synchronization
+        let syncInterval = null;
+        let lastSyncTime = Date.now();
+
+        function startRealTimeSync() {
+            if (!currentTournamentId) return;
+            
+            console.log('🔄 Starting real-time sync for tournament:', currentTournamentId);
+            
+            // Listen for storage changes (works across tabs in same browser)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'footballTournaments' && currentTournamentId) {
+                    console.log('📡 Storage event detected - tournament updated');
+                    reloadTournamentData();
+                }
+            });
+            
+            // Poll for updates every 2 seconds
+            syncInterval = setInterval(function() {
+                if (currentTournamentId) {
+                    reloadTournamentData();
+                }
+            }, 2000);
+            
+            console.log('✅ Real-time sync started (polling every 2 seconds)');
+        }
+
+        function stopRealTimeSync() {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
+                console.log('🛑 Real-time sync stopped');
+            }
+        }
+
+        function reloadTournamentData() {
+            // Reload tournaments from localStorage
+            loadTournamentsFromStorage();
+            
+            // Get the current tournament
+            const tournament = allTournaments[currentTournamentId];
+            if (!tournament) {
+                console.warn('Tournament no longer exists');
+                return;
+            }
+            
+            // Check if there are actual changes (including standings)
+            const currentDataString = JSON.stringify({
+                matches: matches,
+                teams: teams,
+                standings: standings,
+                playerStats: playerStats,
+                keeperStats: keeperStats
+            });
+            
+            const newDataString = JSON.stringify({
+                matches: tournament.matches,
+                teams: tournament.teams,
+                standings: tournament.standings,
+                playerStats: tournament.playerStats,
+                keeperStats: tournament.keeperStats
+            });
+            
+            // Only update if data has changed
+            if (currentDataString !== newDataString) {
+                console.log('🔄 Tournament data changed - updating UI');
+                
+                // Update tournament data
+                teams = tournament.teams;
+                matches = tournament.matches;
+                standings = tournament.standings;
+                playerStats = tournament.playerStats || {};
+                keeperStats = tournament.keeperStats || {};
+                
+                // Re-render all views
+                renderMatches();
+                updateTable();
+                updateLeaderboard();
+                
+                lastSyncTime = Date.now();
+            }
+            
+            // Always update timers for live matches (even if no other changes)
+            updateLiveMatchTimers();
+        }
+        
+        function updateLiveMatchTimers() {
+            // Update timer displays for live matches
+            matches.forEach(match => {
+                if (match.status === 'live') {
+                    const timerElement = document.getElementById(`timer-${match.id}`);
+                    if (timerElement) {
+                        timerElement.textContent = formatTime(match.timer);
+                    }
+                }
+            });
+        }
 
         function addPlayer(team) {
             const input = document.getElementById(`${team}PlayerInput`);
