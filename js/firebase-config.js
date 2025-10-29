@@ -6,12 +6,13 @@
 // 4. Copy the firebaseConfig object here
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAgjDE5i_mWnz2sI3R2LY0nvav3Kzohl1g",
+  authDomain: "football-tournament-12d9e.firebaseapp.com",
+  projectId: "football-tournament-12d9e",
+  storageBucket: "football-tournament-12d9e.firebasestorage.app",
+  messagingSenderId: "358266925197",
+  appId: "1:358266925197:web:0c8bfc556f4ef8dfcc32c4",
+  measurementId: "G-138SS2NGPM",
 };
 
 // Initialize Firebase
@@ -21,6 +22,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // Collection reference
-const tournamentsCollection = db.collection('tournaments');
+const tournamentsCollection = db.collection("tournaments");
 
-console.log('✅ Firebase initialized');
+console.log("✅ Firebase initialized");
