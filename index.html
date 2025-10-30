@@ -320,6 +320,7 @@
             max-height: 400px;
             overflow-y: auto;
             border: 1px solid #ddd;
+            text-align: left;
         }
 
         .copy-btn {
@@ -382,37 +383,57 @@
     <div class="container">
         <h1>⚽ Football Tournament Manager</h1>
         
-        <!-- Loading indicator -->
-        <div id="loadingIndicator" style="display: none; text-align: center; padding: 60px 20px;">
-            <div style="display: inline-block; width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <p style="margin-top: 20px; font-size: 1.2em; color: #667eea;">Loading tournament...</p>
-        </div>
-        
         <style>
             @keyframes spin {
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
             }
+            
+            .page {
+                display: none;
+            }
+            
+            .page.active {
+                display: block;
+            }
         </style>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <div id="tournamentDateDisplay" style="font-size: 1.1em; color: #666; display: none;">
-                📅 <strong id="dateText"></strong>
+        <!-- Loader Page -->
+        <div id="loaderPage" class="page active">
+            <div style="text-align: center; padding: 80px 20px;">
+                <div style="width: 60px; height: 60px; border: 6px solid #f3f3f3; border-top: 6px solid #667eea; border-radius: 50%; margin: 0 auto 30px; animation: spin 1s linear infinite;"></div>
+                <h2 style="color: #667eea; margin-bottom: 15px;">Loading Tournament...</h2>
+                <p style="color: #666;">Please wait while we fetch the tournament data</p>
             </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div id="adminControls" style="display: none;">
-                    <button class="btn-primary" onclick="showAdminLogin()" style="padding: 8px 16px;">
-                        🔐 Admin Login
-                    </button>
-                </div>
-                <div id="adminStatus" style="display: none; color: #28a745; font-weight: bold;">
-                    ✅ Admin Mode
-                    <button onclick="logoutAdmin()" style="margin-left: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
-                </div>
+            <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
+                <span>v1.5.7</span>
+                <span>UTC: <span class="deviceUTC">--</span></span>
             </div>
         </div>
-
-        <div class="section" id="setupSection">
+        
+        <!-- Tournament Not Found Page -->
+        <div id="notFoundPage" class="page">
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 80px; margin-bottom: 20px;">⚠️</div>
+                <h2 style="color: #d32f2f; margin-bottom: 15px;">Tournament Not Found</h2>
+                <p style="color: #666; font-size: 1.1em; margin-bottom: 10px;">
+                    The tournament you're looking for doesn't exist or has been deleted.
+                </p>
+                <p id="notFoundTournamentId" style="color: #999; font-size: 0.9em; margin-bottom: 30px;">
+                </p>
+                <button onclick="goToHome()" class="btn-primary" style="padding: 12px 30px; font-size: 1.1em;">
+                    🏠 Go to Home
+                </button>
+            </div>
+            <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
+                <span>v1.5.7</span>
+                <span>UTC: <span class="deviceUTC">--</span></span>
+            </div>
+        </div>
+        
+        <!-- Create Tournament Page (Team Setup) -->
+        <div id="createTournamentPage" class="page">
+            <div class="section">
             <h2>Team Setup</h2>
             <div class="team-setup">
                 <div class="team-card team-red">
@@ -447,25 +468,56 @@
                 <button class="btn-success" style="padding: 15px 40px; font-size: 18px;" onclick="startTournament()">Start Tournament</button>
             </div>
         </div>
-
-        <div class="section hidden" id="matchesSection">
-            <h2>Matches</h2>
+        <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
+            <span>v1.5.7</span>
+            <span>UTC: <span class="deviceUTC">--</span></span>
+        </div>
+        </div>
+        
+        <!-- Tournament Detail Page -->
+        <div id="tournamentDetailPage" class="page">
+            <!-- Header with Date and Admin Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="font-size: 1.1em; color: #666;">
+                    📅 <strong id="dateText"></strong>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div id="adminControls" style="display: none;">
+                        <button class="btn-primary" onclick="showAdminLogin()" style="padding: 8px 16px;">
+                            🔐 Admin Login
+                        </button>
+                    </div>
+                    <div id="adminStatus" style="display: none; color: #28a745; font-weight: bold;">
+                        ✅ Admin Mode
+                        <button onclick="logoutAdmin()" style="margin-left: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
+                    </div>
+                </div>
+            </div>
             
+            <!-- WATCH LIVE Section (dynamically populated, visible to all) -->
+            <div id="watchLiveMessageContainer"></div>
+            
+            <!-- WhatsApp Message Section (admin only) -->
             <div class="whatsapp-message-box hidden" id="whatsappMessageBox">
                 <h3>
                     <span style="font-size: 1.5em;">📱</span>
                     WhatsApp Message - Share Tournament Info
                 </h3>
                 <div class="message-content" id="messageContent"></div>
-                <button class="copy-btn" onclick="copyWhatsAppMessage()">
+                <button id="copyMessageBtn" class="copy-btn" onclick="copyWhatsAppMessage()">
                     📋 Copy Message
                 </button>
             </div>
+            
+            <!-- Matches Section -->
+            <div class="section" id="matchesSection">
+            <h2>Matches</h2>
 
             <div class="matches-grid" id="matchesGrid"></div>
         </div>
 
-        <div class="section hidden" id="tableSection">
+        <!-- Points Table Section -->
+        <div class="section" id="tableSection">
             <h2>Points Table</h2>
             <table class="points-table">
                 <thead>
@@ -494,7 +546,8 @@
             </div>
         </div>
 
-        <div class="section hidden" id="leaderboardSection">
+        <!-- Leaderboard Section -->
+        <div class="section" id="leaderboardSection">
             <h2>Leaderboard</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
                 <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107;">
@@ -531,10 +584,12 @@
                 </div>
             </div>
         </div>
-
+        
+        <!-- Winner Section (dynamically populated) -->
         <div id="winnerSection"></div>
 
-        <div class="section hidden" id="tournamentSummarySection">
+        <!-- Tournament Summary Section -->
+        <div class="section" id="tournamentSummarySection" style="display: none;">
             <h2>Tournament Summary</h2>
             <div class="whatsapp-message-box">
                 <h3>
@@ -546,6 +601,19 @@
                     📋 Copy Summary
                 </button>
             </div>
+        </div>
+        
+        <!-- Delete Tournament Button (admin only) -->
+        <div id="deleteTournamentSection" class="section" style="display: none; text-align: center; margin-top: 30px;">
+            <button id="deleteTournamentBtn" class="btn-danger" style="padding: 12px 30px; font-size: 16px;">
+                🗑️ Delete Tournament
+            </button>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
+            <span>v1.5.7</span>
+            <span>UTC: <span class="deviceUTC">--</span></span>
+        </div>
         </div>
     </div>
 
@@ -632,6 +700,12 @@
         let currentTournamentId = null;
         let allTournaments = {};
         
+        // Global timer tracking
+        let matchTimers = {}; // { matchId: { startTime: timestamp, interval: intervalId } }
+        
+        // Flag to track if page has been reorganized for completed tournament
+        let pageReorganized = false;
+        
         // Firebase integration
         let firebaseStorage = null;
         let useFirebase = false;
@@ -709,6 +783,26 @@
             return window.location.href.split('?')[0] + '?tournament=' + tournamentId;
         }
 
+        // Page navigation functions
+        function showPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show requested page
+            const page = document.getElementById(pageName);
+            if (page) {
+                page.classList.add('active');
+            }
+        }
+        
+        function goToHome() {
+            // Clear URL parameters
+            window.history.pushState({}, '', window.location.pathname);
+            showPage('createTournamentPage');
+        }
+        
         async function loadTournamentFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             const tournamentId = urlParams.get('tournament');
@@ -727,6 +821,7 @@
                             
                             // Set up real-time listener for Firebase
                             setupFirebaseListener(tournamentId);
+                            showPage('tournamentDetailPage');
                             return true;
                         }
                     } catch(e) {
@@ -745,11 +840,17 @@
                     if (useFirebase && firebaseStorage) {
                         setupFirebaseListener(tournamentId);
                     }
+                    showPage('tournamentDetailPage');
                     return true;
                 } else {
                     console.error('❌ Tournament not found in storage!');
                     console.error('Requested ID:', tournamentId);
                     console.error('Available IDs:', Object.keys(allTournaments));
+                    
+                    // Show not found page
+                    document.getElementById('notFoundTournamentId').innerHTML = 
+                        `Tournament ID: <code style="background: #f5f5f5; padding: 2px 8px; border-radius: 3px;">${tournamentId}</code>`;
+                    showPage('notFoundPage');
                     return false;
                 }
             }
@@ -775,11 +876,13 @@
                     playerStats = updatedData.playerStats || {};
                     keeperStats = updatedData.keeperStats || {};
                     
+                    // Restart timers for any live matches that don't have them
+                    restartLiveMatchTimers();
+                    
                     // Re-render UI
                     renderMatches();
                     updateTable();
                     updateLeaderboard();
-                    updateLiveMatchTimers();
                 }
             });
         }
@@ -815,33 +918,42 @@
             console.log('Teams:', teams);
             console.log('Matches:', matches.length);
 
-            // Update UI to show tournament view
-            const setupSection = document.getElementById('setupSection');
-            const matchesSection = document.getElementById('matchesSection');
-            const tableSection = document.getElementById('tableSection');
-            const leaderboardSection = document.getElementById('leaderboardSection');
-            
-            console.log('Hiding setup section, showing tournament sections...');
-            setupSection.classList.add('hidden');
-            matchesSection.classList.remove('hidden');
-            tableSection.classList.remove('hidden');
-            leaderboardSection.classList.remove('hidden');
-            
-            document.getElementById('tournamentDateDisplay').style.display = 'block';
+            // Update UI - tournament sections are already visible in the page
+            console.log('Updating tournament UI...');
             document.getElementById('dateText').textContent = tournamentDate;
             
             // Show admin status or login button based on session
             if (isAdmin) {
                 document.getElementById('adminControls').style.display = 'none';
                 document.getElementById('adminStatus').style.display = 'block';
+                // Show admin-only sections
+                document.getElementById('whatsappMessageBox').classList.remove('hidden');
+                const deleteSection = document.getElementById('deleteTournamentSection');
+                if (deleteSection) {
+                    deleteSection.style.display = 'block';
+                    // Set up delete button with correct tournament ID
+                    const deleteBtn = document.getElementById('deleteTournamentBtn');
+                    if (deleteBtn) {
+                        deleteBtn.onclick = () => deleteTournament(currentTournamentId);
+                    }
+                }
             } else {
                 document.getElementById('adminControls').style.display = 'block';
                 document.getElementById('adminStatus').style.display = 'none';
+                // Hide admin-only sections
+                document.getElementById('whatsappMessageBox').classList.add('hidden');
+                const deleteSection = document.getElementById('deleteTournamentSection');
+                if (deleteSection) {
+                    deleteSection.style.display = 'none';
+                }
             }
             
             console.log('Showing WATCH LIVE message...');
             // Show WATCH LIVE message
             showWatchLiveMessage();
+            
+            // Generate WhatsApp message for admins
+            generateWhatsAppMessage();
             
             console.log('Rendering tournament data...');
             // Render all the tournament data
@@ -853,6 +965,9 @@
             renderPlayers('red');
             renderPlayers('black');
             renderPlayers('white');
+            
+            // Restart intervals for live matches
+            restartLiveMatchTimers();
             
             console.log('Tournament loaded successfully!');
         }
@@ -884,8 +999,8 @@
         }
 
         function showWatchLiveMessage() {
-            // Only show WATCH LIVE message for admins
-            if (!isAdmin || !currentTournamentId) {
+            // Show WATCH LIVE message to everyone (not just admins)
+            if (!currentTournamentId) {
                 return;
             }
             
@@ -895,28 +1010,41 @@
                 watchLiveDiv.style.display = 'block';
                 document.getElementById('shareLink').textContent = shareLink;
             } else {
-                // Create the watch live message if it doesn't exist
-                const container = document.querySelector('.container');
+                // Create the watch live message with WhatsApp-style UI (left-aligned)
                 const watchLiveHTML = `
-                    <div id="watchLiveMessage" style="background: #e8f5e8; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: center;">
-                        <h3 style="color: #28a745; margin: 0 0 10px 0;">📺 WATCH LIVE</h3>
-                        <p style="margin: 5px 0; color: #666;">Share this link to let others watch the tournament:</p>
-                        <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ddd; word-break: break-all; font-family: monospace; margin: 10px 0;">
-                            <span id="shareLink">${shareLink}</span>
+                    <div id="watchLiveMessage" style="background: #e7f3e7; border: 2px solid #28a745; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                        <h3 style="color: #28a745; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5em;">📺</span>
+                            WATCH LIVE
+                        </h3>
+                        <p style="margin: 5px 0 10px 0; color: #666;">Share this link to let others watch the tournament:</p>
+                        <div style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; border: 1px solid #ddd; word-break: break-all; margin-bottom: 10px; text-align: left; display: block;">
+                            <span id="shareLink" style="display: block; text-align: left;">${shareLink}</span>
                         </div>
-                        <button onclick="copyShareLink()" class="btn-primary" style="margin: 5px;">📋 Copy Link</button>
-                        <button onclick="deleteTournament('${currentTournamentId}')" class="btn-danger" style="margin: 5px;">🗑️ Delete Tournament</button>
+                        <button id="copyLinkBtn" onclick="copyShareLink()" class="copy-btn">
+                            📋 Copy Link
+                        </button>
                     </div>
                 `;
-                const setupSection = document.getElementById('setupSection');
-                setupSection.insertAdjacentHTML('afterend', watchLiveHTML);
+                const watchLiveContainer = document.getElementById('watchLiveMessageContainer');
+                if (watchLiveContainer) {
+                    watchLiveContainer.innerHTML = watchLiveHTML;
+                }
             }
         }
 
         function copyShareLink() {
             const shareLink = document.getElementById('shareLink').textContent;
+            const btn = document.getElementById('copyLinkBtn');
+            const originalText = btn.innerHTML;
+            
             navigator.clipboard.writeText(shareLink).then(() => {
-                alert('Tournament link copied to clipboard!');
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = '#128C7E';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#25D366';
+                }, 2000);
             }).catch(() => {
                 // Fallback for browsers that don't support clipboard API
                 const textArea = document.createElement('textarea');
@@ -925,7 +1053,13 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                alert('Tournament link copied to clipboard!');
+                
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = '#128C7E';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#25D366';
+                }, 2000);
             });
         }
 
@@ -935,16 +1069,18 @@
             console.log('Current URL:', window.location.href);
             console.log('URL Search params:', window.location.search);
             
-            // Check if URL has tournament ID
+            // Always show loader page first
+            showPage('loaderPage');
+            
+            // Start UTC time display immediately
+            updateDeviceUTC();
+            setInterval(updateDeviceUTC, 1000);
+            
+            // Get tournament ID from URL if present
             const urlParams = new URLSearchParams(window.location.search);
             const tournamentId = urlParams.get('tournament');
             
-            // If loading a tournament, hide setup section and show loader
-            if (tournamentId) {
-                document.getElementById('setupSection').style.display = 'none';
-                document.getElementById('loadingIndicator').style.display = 'block';
-                document.getElementById('adminControls').style.display = 'none';
-            }
+            console.log('Tournament ID from URL:', tournamentId);
             
             // Initialize Firebase
             initializeFirebase();
@@ -952,63 +1088,42 @@
             // Load tournaments from storage first
             await loadTournamentsFromStorage();
             console.log('Tournaments loaded from storage:', Object.keys(allTournaments));
-            console.log('All tournament data:', allTournaments);
             
             // Check if we're loading a specific tournament from URL
-            const loaded = await loadTournamentFromUrl();
-            
-            // Hide loader
-            document.getElementById('loadingIndicator').style.display = 'none';
-            
-            if (!loaded) {
-                if (tournamentId) {
-                    // Tournament not found - show error
-                    console.log('Tournament not found, showing error');
-                    showTournamentNotFoundError(tournamentId);
-                } else {
-                    console.log('No tournament to load, showing setup page');
-                    // Show setup page for creating new tournament
-                    document.getElementById('setupSection').style.display = 'block';
-                    document.getElementById('adminControls').style.display = 'none';
+            if (tournamentId) {
+                const loaded = await loadTournamentFromUrl();
+                
+                if (!loaded) {
+                    // Tournament not found - show not found page
+                    console.log('Tournament not found, showing error page');
+                    // loadTournamentFromUrl already showed the not found page
                 }
-            } else {
-                console.log('Tournament loaded from URL successfully');
+                // If loaded successfully, loadTournamentFromUrl already showed tournamentDetailPage
+                
                 // If not using Firebase, start localStorage polling
-                if (!useFirebase) {
+                if (loaded && !useFirebase) {
                     startRealTimeSync();
                 }
-                // Firebase uses real-time listeners instead
+            } else {
+                // No tournament ID - show create tournament page
+                console.log('No tournament to load, showing create page');
+                showPage('createTournamentPage');
             }
         });
         
-        function showTournamentNotFoundError(tournamentId) {
-            const container = document.querySelector('.container');
-            const errorHTML = `
-                <div style="text-align: center; padding: 60px 20px;">
-                    <div style="font-size: 80px; margin-bottom: 20px;">⚠️</div>
-                    <h2 style="color: #d32f2f; margin-bottom: 15px;">Tournament Not Found</h2>
-                    <p style="color: #666; font-size: 1.1em; margin-bottom: 10px;">
-                        The tournament you're looking for doesn't exist or has been deleted.
-                    </p>
-                    <p style="color: #999; font-size: 0.9em; margin-bottom: 30px;">
-                        Tournament ID: <code style="background: #f5f5f5; padding: 2px 8px; border-radius: 3px;">${tournamentId}</code>
-                    </p>
-                    <button onclick="location.href='/'" class="btn-primary" style="padding: 12px 30px; font-size: 1.1em;">
-                        🏠 Go to Home
-                    </button>
-                </div>
-            `;
-            
-            // Hide all sections
-            document.getElementById('setupSection').style.display = 'none';
-            document.getElementById('matchesSection').style.display = 'none';
-            document.getElementById('tableSection').style.display = 'none';
-            document.getElementById('leaderboardSection').style.display = 'none';
-            
-            // Show error
-            const errorDiv = document.createElement('div');
-            errorDiv.innerHTML = errorHTML;
-            container.appendChild(errorDiv);
+        // Update device UTC time display
+        function updateDeviceUTC() {
+            const utcElements = document.querySelectorAll('.deviceUTC');
+            if (utcElements.length > 0) {
+                const now = new Date();
+                const hours = now.getUTCHours().toString().padStart(2, '0');
+                const minutes = now.getUTCMinutes().toString().padStart(2, '0');
+                const seconds = now.getUTCSeconds().toString().padStart(2, '0');
+                const timeString = `${hours}:${minutes}:${seconds}`;
+                utcElements.forEach(el => {
+                    el.textContent = timeString;
+                });
+            }
         }
 
         // Cleanup on page unload
@@ -1108,13 +1223,20 @@
         }
         
         function updateLiveMatchTimers() {
-            // Update timer displays for live matches
+            // Only manage intervals: start for live matches, stop for completed matches
+            // Each device calculates timer independently from UTC timestamps
             matches.forEach(match => {
-                if (match.status === 'live') {
-                    const timerElement = document.getElementById(`timer-${match.id}`);
-                    if (timerElement) {
-                        timerElement.textContent = formatTime(match.timer);
+                if (match.status === 'live' && match.startTimeUTC) {
+                    // Ensure interval is running for live match
+                    if (!matchTimers[match.id]) {
+                        console.log(`Starting missing interval for live match ${match.id} (sync)`);
+                        startCountdownTimer(match.id);
                     }
+                } else if (match.status === 'completed' && matchTimers[match.id]) {
+                    // Match was completed, stop the timer
+                    console.log(`Stopping timer for completed match ${match.id} (localStorage sync)`);
+                    clearInterval(matchTimers[match.id]);
+                    delete matchTimers[match.id];
                 }
             });
         }
@@ -1231,12 +1353,11 @@
                     score1: 0,
                     score2: 0,
                     status: 'pending',
-                    timer: 600,
-                    interval: null,
+                    startTimeUTC: null,
+                    endTimeUTC: null,
                     goals: [],
                     keeper1: null,
-                    keeper2: null,
-                    paused: false
+                    keeper2: null
                 });
 
                 matches.push({
@@ -1247,12 +1368,11 @@
                     score1: 0,
                     score2: 0,
                     status: 'pending',
-                    timer: 600,
-                    interval: null,
+                    startTimeUTC: null,
+                    endTimeUTC: null,
                     goals: [],
                     keeper1: null,
-                    keeper2: null,
-                    paused: false
+                    keeper2: null
                 });
 
                 matches.push({
@@ -1263,12 +1383,11 @@
                     score1: 0,
                     score2: 0,
                     status: 'pending',
-                    timer: 600,
-                    interval: null,
+                    startTimeUTC: null,
+                    endTimeUTC: null,
                     goals: [],
                     keeper1: null,
-                    keeper2: null,
-                    paused: false
+                    keeper2: null
                 });
             }
 
@@ -1277,6 +1396,7 @@
                 id: currentTournamentId,
                 teams: JSON.parse(JSON.stringify(teams)),
                 matches: JSON.parse(JSON.stringify(matches)),
+                standings: JSON.parse(JSON.stringify(standings)),
                 date: tournamentDate,
                 adminPassword: adminPassword,
                 playerStats: JSON.parse(JSON.stringify(playerStats)),
@@ -1292,16 +1412,11 @@
             const newUrl = getTournamentShareLink(currentTournamentId);
             window.history.pushState({}, '', newUrl);
 
-            document.getElementById('setupSection').classList.add('hidden');
-            document.getElementById('matchesSection').classList.remove('hidden');
-            document.getElementById('tableSection').classList.remove('hidden');
-            document.getElementById('leaderboardSection').classList.remove('hidden');
+            // Load the tournament (which will switch to tournament detail page)
+            loadTournament(currentTournamentId);
             
-            document.getElementById('tournamentDateDisplay').style.display = 'block';
-            document.getElementById('dateText').textContent = tournamentDate;
-            
-            document.getElementById('adminStatus').style.display = 'block';
-            document.getElementById('adminControls').style.display = 'none';
+            // Show the tournament detail page
+            showPage('tournamentDetailPage');
             
             // Show WATCH LIVE message
             showWatchLiveMessage();
@@ -1335,6 +1450,35 @@
                 document.getElementById('adminControls').style.display = 'none';
                 document.getElementById('adminStatus').style.display = 'block';
                 
+                // Show admin-only sections (check if they exist)
+                const whatsappBox = document.getElementById('whatsappMessageBox');
+                if (whatsappBox) {
+                    whatsappBox.classList.remove('hidden');
+                }
+                
+                const deleteSection = document.getElementById('deleteTournamentSection');
+                if (deleteSection) {
+                    deleteSection.style.display = 'block';
+                    const deleteBtn = document.getElementById('deleteTournamentBtn');
+                    if (deleteBtn) {
+                        deleteBtn.onclick = () => deleteTournament(currentTournamentId);
+                    }
+                }
+
+                // If tournament is complete, show tournament summary section
+                if (isTournamentComplete()) {
+                    const tournamentSummarySection = document.getElementById('tournamentSummarySection');
+                    if (tournamentSummarySection) {
+                        tournamentSummarySection.style.display = 'block';
+                        generateTournamentSummary();
+                    } else {
+                        // Tournament is complete but section doesn't exist
+                        // Need to reorganize the page with admin privileges
+                        pageReorganized = false;
+                        reorganizePageForCompletedTournament();
+                    }
+                }
+                
                 // Show admin-only elements
                 showWatchLiveMessage();
                 generateWhatsAppMessage();
@@ -1349,7 +1493,7 @@
 
         async function updateTournamentStorage() {
             if (currentTournamentId && allTournaments[currentTournamentId]) {
-                console.log('Saving matches to storage. Timer values:', matches.map(m => ({ id: m.id, timer: m.timer, status: m.status })));
+                console.log('Saving matches to storage:', matches.map(m => ({ id: m.id, status: m.status, startTimeUTC: m.startTimeUTC, endTimeUTC: m.endTimeUTC })));
                 
                 allTournaments[currentTournamentId].teams = JSON.parse(JSON.stringify(teams));
                 allTournaments[currentTournamentId].matches = JSON.parse(JSON.stringify(matches));
@@ -1368,16 +1512,32 @@
                 sessionStorage.removeItem(`admin_${currentTournamentId}`);
             }
             
-            // Hide WATCH LIVE message
-            const watchLiveDiv = document.getElementById('watchLiveMessage');
-            if (watchLiveDiv) {
-                watchLiveDiv.style.display = 'none';
+            // Hide admin-only sections
+            const whatsappBox = document.getElementById('whatsappMessageBox');
+            if (whatsappBox) {
+                whatsappBox.classList.add('hidden');
+                whatsappBox.style.display = 'none';
             }
             
-            document.getElementById('adminStatus').style.display = 'none';
-            document.getElementById('adminControls').style.display = 'block';
+            const deleteSection = document.getElementById('deleteTournamentSection');
+            if (deleteSection) {
+                deleteSection.style.display = 'none';
+            }
+
+            const tournamentSummarySection = document.getElementById('tournamentSummarySection');
+            if (tournamentSummarySection) {
+                tournamentSummarySection.style.display = 'none';
+            }
+            
+            const adminStatus = document.getElementById('adminStatus');
+            const adminControls = document.getElementById('adminControls');
+            if (adminStatus) adminStatus.style.display = 'none';
+            if (adminControls) adminControls.style.display = 'block';
+            
+            // Reset the page reorganization flag and reload
+            pageReorganized = false;
+            
             renderMatches();
-            alert('Logged out from admin mode');
         }
 
         function checkAdmin() {
@@ -1425,7 +1585,14 @@
 
         function renderMatches() {
             const grid = document.getElementById('matchesGrid');
-            grid.innerHTML = matches.map(match => {
+            
+            // When tournament is complete, exclude final match from this grid
+            const tournamentComplete = isTournamentComplete();
+            const matchesToRender = tournamentComplete 
+                ? matches.filter(m => m.round !== 'final')
+                : matches;
+            
+            grid.innerHTML = matchesToRender.map(match => {
                 const isFinal = match.round === 'final';
                 return `
                     <div class="match-card ${isFinal ? 'final-match' : ''}" id="match-${match.id}">
@@ -1449,7 +1616,31 @@
                             <span style="color: ${teams[match.team2].color}">${teams[match.team2].name}</span>
                         </div>
 
-                        <div class="timer" id="timer-${match.id}">${formatTime(match.timer)}</div>
+                        <div class="timer" id="timer-${match.id}">${
+                            match.status === 'completed' && match.startTimeUTC && match.endTimeUTC
+                                ? (() => {
+                                    const startTime = new Date(match.startTimeUTC).getTime();
+                                    const endTime = new Date(match.endTimeUTC).getTime();
+                                    const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
+                                    // If match went beyond 10 minutes, show 0:00
+                                    const remainingSeconds = elapsedSeconds >= 600 ? 0 : Math.max(0, 600 - elapsedSeconds);
+                                    const mins = Math.floor(remainingSeconds / 60);
+                                    const secs = remainingSeconds % 60;
+                                    return `${mins}:${secs.toString().padStart(2, '0')}`;
+                                })()
+                                : match.status === 'live' && match.startTimeUTC
+                                    ? (() => {
+                                        // Calculate current countdown time for live matches
+                                        const startTime = new Date(match.startTimeUTC).getTime();
+                                        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                                        // Clamp between 0 and 600 to handle clock skew
+                                        const remainingSeconds = Math.min(600, Math.max(0, 600 - elapsedSeconds));
+                                        const mins = Math.floor(remainingSeconds / 60);
+                                        const secs = remainingSeconds % 60;
+                                        return `${mins}:${secs.toString().padStart(2, '0')}`;
+                                    })()
+                                    : '10:00'
+                        }</div>
 
                         <div class="match-controls">
                             ${match.status === 'pending' && isAdmin ? `
@@ -1457,9 +1648,6 @@
                             ` : ''}
                             
                             ${match.status === 'live' && isAdmin ? `
-                                <button class="btn-warning" onclick="togglePause(${match.id})" id="pauseBtn-${match.id}">
-                                    ${match.paused ? '▶️ Resume' : '⏸️ Pause'}
-                                </button>
                                 <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0;">
                                     🎲 Random
                                 </button>
@@ -1488,32 +1676,106 @@
                     </div>
                 `;
             }).join('');
+            
+            // After rendering, immediately update timer displays for all live matches
+            // This ensures accurate display even if intervals haven't ticked yet
+            matches.forEach(match => {
+                if (match.status === 'live' && match.startTimeUTC) {
+                    const startTime = new Date(match.startTimeUTC).getTime();
+                    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                    // Clamp between 0 and 600 to handle clock skew
+                    const remainingSeconds = Math.min(600, Math.max(0, 600 - elapsedSeconds));
+                    updateTimerDisplay(match.id, remainingSeconds);
+                }
+            });
+
+            // Check if tournament is complete and reorganize layout
+            reorganizePageForCompletedTournament();
         }
 
         function startMatch(matchId) {
             const match = matches.find(m => m.id === matchId);
             match.status = 'live';
-            match.paused = false;
+            match.startTimeUTC = new Date().toISOString();
+            match.endTimeUTC = null;
             
-            match.interval = setInterval(() => {
-                if (!match.paused) {
-                    match.timer--;
-                    document.getElementById(`timer-${matchId}`).textContent = formatTime(match.timer);
-                    
-                    if (match.timer <= 0) {
-                        endMatch(matchId);
-                    }
-                }
-            }, 1000);
+            // Start 10-minute countdown timer
+            startCountdownTimer(matchId);
             
             renderMatches();
             updateTournamentStorage();
-        }        function togglePause(matchId) {
-            if (!checkAdmin()) return;
-            
+        }
+        
+        function startCountdownTimer(matchId) {
             const match = matches.find(m => m.id === matchId);
-            match.paused = !match.paused;
-            renderMatches();
+            if (!match || match.status !== 'live') return;
+            
+            // Calculate how much time has elapsed since start
+            const startTime = new Date(match.startTimeUTC).getTime();
+            const now = Date.now();
+            const elapsedMs = now - startTime;
+            const elapsedSeconds = Math.floor(elapsedMs / 1000);
+            
+            // 10 minutes = 600 seconds
+            const totalSeconds = 600;
+            let remainingSeconds = totalSeconds - elapsedSeconds;
+            
+            // Clamp to valid range: 0 to 600 (never exceed 10:00 or go negative)
+            if (remainingSeconds < 0) remainingSeconds = 0;
+            if (remainingSeconds > 600) remainingSeconds = 600;
+            
+            // Update display immediately
+            updateTimerDisplay(matchId, remainingSeconds);
+            
+            // Start interval
+            matchTimers[matchId] = setInterval(() => {
+                const currentElapsed = Math.floor((Date.now() - startTime) / 1000);
+                remainingSeconds = totalSeconds - currentElapsed;
+                
+                // Clamp to valid range: 0 to 600 (handle clock skew between devices)
+                if (remainingSeconds < 0) remainingSeconds = 0;
+                if (remainingSeconds > 600) remainingSeconds = 600;
+                
+                if (remainingSeconds <= 0) {
+                    updateTimerDisplay(matchId, 0);
+                    // Timer stops at 0:00 but match continues until admin ends it
+                    clearInterval(matchTimers[matchId]);
+                    delete matchTimers[matchId];
+                } else {
+                    updateTimerDisplay(matchId, remainingSeconds);
+                }
+            }, 1000);
+        }
+        
+        function updateTimerDisplay(matchId, seconds) {
+            const timerElement = document.getElementById(`timer-${matchId}`);
+            if (timerElement) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                timerElement.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function restartLiveMatchTimers() {
+            // Restart countdown timers for any live matches after page reload
+            // AND stop timers for any completed matches
+            matches.forEach(match => {
+                if (match.status === 'live' && match.startTimeUTC && !matchTimers[match.id]) {
+                    console.log(`Restarting countdown timer for match ${match.id}`);
+                    startCountdownTimer(match.id);
+                } else if (match.status === 'completed' && matchTimers[match.id]) {
+                    // Match was completed (possibly by admin on another device)
+                    // Stop the timer on this device
+                    console.log(`Stopping timer for completed match ${match.id}`);
+                    clearInterval(matchTimers[match.id]);
+                    delete matchTimers[match.id];
+                }
+            });
+        }
+
+        function togglePause(matchId) {
+            if (!checkAdmin()) return;
+            alert('Pause functionality temporarily disabled');
         }
 
         function simulateMatch(matchId) {
@@ -1541,7 +1803,7 @@
                         }
                     }
                     
-                    const elapsedTime = 600 - match.timer;
+                    const elapsedTime = match.startTimeUTC ? Math.floor((Date.now() - new Date(match.startTimeUTC).getTime()) / 1000) : 0;
                     const minutes = Math.floor(elapsedTime / 60);
                     
                     match.goals.push({
@@ -1573,7 +1835,7 @@
                     const teamPlayers = teams[ownGoalTeam].players;
                     const player = teamPlayers[Math.floor(Math.random() * teamPlayers.length)];
                     
-                    const elapsedTime = 600 - match.timer;
+                    const elapsedTime = match.startTimeUTC ? Math.floor((Date.now() - new Date(match.startTimeUTC).getTime()) / 1000) : 0;
                     const minutes = Math.floor(elapsedTime / 60);
                     
                     match.goals.push({
@@ -1601,7 +1863,7 @@
                     const saveTeam = Math.random() > 0.5 ? match.team1 : match.team2;
                     const keeper = saveTeam === match.team1 ? match.keeper1 : match.keeper2;
                     
-                    const elapsedTime = 600 - match.timer;
+                    const elapsedTime = match.startTimeUTC ? Math.floor((Date.now() - new Date(match.startTimeUTC).getTime()) / 1000) : 0;
                     const minutes = Math.floor(elapsedTime / 60);
                     
                     match.goals.push({
@@ -1626,13 +1888,23 @@
             if (!checkAdmin()) return;
             const match = matches.find(m => m.id === matchId);
             
-            console.log('Ending match - Timer before:', match.timer);
-            
-            clearInterval(match.interval);
+            // Save end time in UTC
+            match.endTimeUTC = new Date().toISOString();
             match.status = 'completed';
-            // Timer is already at the stopped value, no need to reset it
             
-            console.log('Match status set to completed - Timer after:', match.timer);
+            // Calculate elapsed time for logging
+            if (match.startTimeUTC && match.endTimeUTC) {
+                const startTime = new Date(match.startTimeUTC).getTime();
+                const endTime = new Date(match.endTimeUTC).getTime();
+                const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
+                console.log('Match ended - Duration:', Math.floor(elapsedSeconds / 60) + ':' + (elapsedSeconds % 60).toString().padStart(2, '0'));
+            }
+            
+            // Clear the interval
+            if (matchTimers[matchId]) {
+                clearInterval(matchTimers[matchId]);
+                delete matchTimers[matchId];
+            }
 
             const keeper1Id = `${match.team1}-${match.keeper1}`;
             const keeper2Id = `${match.team2}-${match.keeper2}`;
@@ -1821,7 +2093,7 @@
 
         function recordGoal(matchId) {
             const match = matches.find(m => m.id === matchId);
-            const elapsedTime = 600 - match.timer;
+            const elapsedTime = match.startTimeUTC ? Math.floor((Date.now() - new Date(match.startTimeUTC).getTime()) / 1000) : 0;
             const minutes = Math.floor(elapsedTime / 60);
 
             match.goals.push({
@@ -1859,7 +2131,7 @@
 
         function recordOwnGoal(matchId) {
             const match = matches.find(m => m.id === matchId);
-            const elapsedTime = 600 - match.timer;
+            const elapsedTime = match.startTimeUTC ? Math.floor((Date.now() - new Date(match.startTimeUTC).getTime()) / 1000) : 0;
             const minutes = Math.floor(elapsedTime / 60);
 
             match.goals.push({
@@ -1896,7 +2168,7 @@
             const keeperTeam = eventData.team;
             const keeper = keeperTeam === match.team1 ? match.keeper1 : match.keeper2;
 
-            const elapsedTime = 600 - match.timer;
+            const elapsedTime = match.startTimeUTC ? Math.floor((Date.now() - new Date(match.startTimeUTC).getTime()) / 1000) : 0;
             const minutes = Math.floor(elapsedTime / 60);
 
             match.goals.push({
@@ -1925,6 +2197,11 @@
         }
 
         function updateStandings(match) {
+            // Don't update standings for final matches
+            if (match.round === 'final') {
+                return;
+            }
+
             const s1 = standings[match.team1];
             const s2 = standings[match.team2];
 
@@ -2210,6 +2487,9 @@
                 paused: false
             });
 
+            // Save the final match to Firebase
+            updateTournamentStorage();
+
             renderMatches();
             
             if (tiebreakerTeams && tiebreakerTeams.length === 3) {
@@ -2225,16 +2505,865 @@
             const secs = seconds % 60;
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
+        
+        function formatElapsedTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function isTournamentComplete() {
+            // Tournament is complete if the final match exists and is completed
+            const finalMatch = matches.find(m => m.round === 'final');
+            return finalMatch && finalMatch.status === 'completed';
+        }
+
+        function reorganizePageForCompletedTournament() {
+            if (!isTournamentComplete()) {
+                pageReorganized = false; // Reset flag if tournament not complete
+                return; // Not complete yet, keep normal layout
+            }
+
+            // Only reorganize once - prevent multiple reorganizations
+            if (pageReorganized) {
+                return;
+            }
+
+            console.log('🔄 Reorganizing page for completed tournament...');
+            
+            const finalMatch = matches.find(m => m.round === 'final');
+            const winner = finalMatch.score1 > finalMatch.score2 ? finalMatch.team1 : finalMatch.team2;
+
+            // Get the main container
+            const detailPage = document.getElementById('tournamentDetailPage');
+            
+            // Get header (first child)
+            const header = detailPage.querySelector('div:first-child');
+
+            // Remove all children except header
+            const allChildren = Array.from(detailPage.children);
+            allChildren.forEach(child => {
+                if (child !== header) {
+                    child.remove();
+                }
+            });
+
+            // Now add sections in the correct order
+            
+            // 1. Header (already there)
+            
+            // 2. TOURNAMENT WINNER
+            const winnerSection = document.createElement('div');
+            winnerSection.id = 'winnerSection';
+            winnerSection.innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+                    <h1 style="font-size: 2.5em; margin: 0 0 15px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                        🏆 TOURNAMENT WINNER 🏆
+                    </h1>
+                    <div style="font-size: 3em; margin: 20px 0; font-weight: bold; text-shadow: 3px 3px 6px rgba(0,0,0,0.3);">
+                        ${teams[winner].name.toUpperCase()}
+                    </div>
+                    <div style="font-size: 1.2em; opacity: 0.9;">
+                        🎉 Congratulations! 🎉
+                    </div>
+                </div>
+            `;
+            detailPage.appendChild(winnerSection);
+
+            // 3. FINAL MATCH
+            const finalMatchSection = document.createElement('div');
+            finalMatchSection.id = 'finalMatchSection';
+            finalMatchSection.className = 'section';
+            finalMatchSection.innerHTML = `
+                <h2>🏆 Final Match</h2>
+                <div class="matches-grid">
+                    ${separateFinalMatch()}
+                </div>
+            `;
+            detailPage.appendChild(finalMatchSection);
+
+            // 4. TOP PERFORMERS
+            const topLeaderboardSection = createTopLeaderboardSection();
+            detailPage.appendChild(topLeaderboardSection);
+
+            // 5. POINTS TABLE
+            const tableSection = document.createElement('div');
+            tableSection.className = 'section';
+            tableSection.id = 'tableSection';
+            tableSection.innerHTML = `
+                <h2>Points Table</h2>
+                <table class="points-table">
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Team</th>
+                            <th>P</th>
+                            <th>W</th>
+                            <th>D</th>
+                            <th>L</th>
+                            <th>GF</th>
+                            <th>GA</th>
+                            <th>GD</th>
+                            <th>CS</th>
+                            <th>Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+                <div style="margin-top: 10px; font-size: 0.85em; color: #666;">
+                    <strong>* Tiebreaker Order:</strong> 1. Points, 2. Goal Difference (GD), 3. Head-to-Head (H2H), 4. Goals Scored (GF), 5. Clean Sheets (CS)
+                </div>
+                <div id="qualificationNote" style="margin-top: 15px; padding: 15px; background: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 5px; font-size: 0.9em; display: none;">
+                    <strong style="color: #1976D2;">📋 Final Qualification:</strong>
+                    <div id="qualificationDetails" style="margin-top: 8px; color: #555;"></div>
+                </div>
+            `;
+            detailPage.appendChild(tableSection);
+            updateTable(); // Re-populate the table
+
+            // 6. LEADERBOARD
+            const leaderboardSection = document.createElement('div');
+            leaderboardSection.className = 'section';
+            leaderboardSection.id = 'leaderboardSection';
+            leaderboardSection.innerHTML = `
+                <h2>Leaderboard</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107;">
+                        <h3 style="color: #ffc107; margin-bottom: 10px;">⚽ Top Scorers</h3>
+                        <div id="topScorers" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea;">
+                        <h3 style="color: #667eea; margin-bottom: 10px;">🎯 Top Assists</h3>
+                        <div id="topAssists" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #dc3545;">
+                        <h3 style="color: #dc3545; margin-bottom: 10px;">😬 Own Goals</h3>
+                        <div id="ownGoals" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #28a745;">
+                        <h3 style="color: #28a745; margin-bottom: 10px;">🧤 Keeper Saves</h3>
+                        <div id="topKeeper" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #17a2b8;">
+                        <h3 style="color: #17a2b8; margin-bottom: 10px;">🛡️ Clean Sheets (Teams)</h3>
+                        <div id="mostCleanSheets" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #d32f2f;">
+                        <h3 style="color: #d32f2f; margin-bottom: 10px;">🔥 Goals Scored (Teams)</h3>
+                        <div id="mostGoals" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #ff6b6b;">
+                        <h3 style="color: #ff6b6b; margin-bottom: 10px;">⚠️ Goals Conceded (Teams)</h3>
+                        <div id="mostConceded" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                    <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #6f42c1;">
+                        <h3 style="color: #6f42c1; margin-bottom: 10px;">📊 Goal Difference (Teams)</h3>
+                        <div id="bestGD" style="max-height: 300px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            `;
+            detailPage.appendChild(leaderboardSection);
+            updateLeaderboard(); // Re-populate leaderboard
+
+            // 7. LEAGUE MATCHES (without final)
+            const matchesSection = document.createElement('div');
+            matchesSection.className = 'section';
+            matchesSection.id = 'matchesSection';
+            matchesSection.innerHTML = `
+                <h2>League Matches</h2>
+                <div class="matches-grid" id="matchesGrid"></div>
+            `;
+            detailPage.appendChild(matchesSection);
+            
+            // Re-render matches (will exclude final due to filter in renderMatches)
+            const grid = document.getElementById('matchesGrid');
+            const leagueMatches = matches.filter(m => m.round !== 'final');
+            grid.innerHTML = leagueMatches.map(match => {
+                const isFinal = false;
+                return `
+                    <div class="match-card" id="match-${match.id}">
+                        <div class="match-header">
+                            <strong>Round ${match.round} - Match ${(match.id % 3) + 1}</strong>
+                            <span style="color: ${match.status === 'completed' ? 'green' : match.status === 'live' ? 'red' : 'gray'}">
+                                ${match.status.toUpperCase()}
+                            </span>
+                        </div>
+
+                        ${match.keeper1 && match.keeper2 ? `
+                            <div class="keeper-info">
+                                <div>🧤 ${teams[match.team1].name}: ${match.keeper1}</div>
+                                <div>🧤 ${teams[match.team2].name}: ${match.keeper2}</div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="match-teams">
+                            <span style="color: ${teams[match.team1].color}">${teams[match.team1].name}</span>
+                            <span class="score">${match.score1} - ${match.score2}</span>
+                            <span style="color: ${teams[match.team2].color}">${teams[match.team2].name}</span>
+                        </div>
+
+                        <div class="timer" id="timer-${match.id}">${
+                            match.status === 'completed' && match.startTimeUTC && match.endTimeUTC
+                                ? (() => {
+                                    const startTime = new Date(match.startTimeUTC).getTime();
+                                    const endTime = new Date(match.endTimeUTC).getTime();
+                                    const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
+                                    const remainingSeconds = elapsedSeconds >= 600 ? 0 : Math.max(0, 600 - elapsedSeconds);
+                                    const mins = Math.floor(remainingSeconds / 60);
+                                    const secs = remainingSeconds % 60;
+                                    return `${mins}:${secs.toString().padStart(2, '0')}`;
+                                })()
+                                : '10:00'
+                        }</div>
+
+                        <div class="goal-log" id="goals-${match.id}">
+                            ${match.goals.map(g => `
+                                <div class="goal-item ${g.ownGoal ? 'own-goal' : ''} ${g.type === 'save' ? 'save-item' : ''}">
+                                    ${g.type === 'save' ? '🧤' : '⚽'} ${g.time}' - ${teams[g.team].name} - ${g.scorer}${g.assist ? ` (Assist: ${g.assist})` : ''}${g.ownGoal ? ' [OWN GOAL]' : ''}${g.type === 'save' ? ' [SAVE]' : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 8. TOURNAMENT SUMMARY (admin only)
+            if (isAdmin) {
+                const tournamentSummarySection = document.createElement('div');
+                tournamentSummarySection.className = 'section';
+                tournamentSummarySection.id = 'tournamentSummarySection';
+                tournamentSummarySection.innerHTML = `
+                    <h2>Tournament Summary</h2>
+                    <div class="whatsapp-message-box">
+                        <h3>
+                            <span style="font-size: 1.5em;">📱</span>
+                            WhatsApp Summary - Share Tournament Results
+                        </h3>
+                        <div class="message-content" id="summaryMessageContent"></div>
+                        <button class="copy-btn" onclick="copySummaryMessage()">
+                            📋 Copy Summary
+                        </button>
+                    </div>
+                `;
+                detailPage.appendChild(tournamentSummarySection);
+                generateTournamentSummary();
+            }
+
+            // 9. TOURNAMENT LINK
+            const tournamentLinkContainer = document.createElement('div');
+            tournamentLinkContainer.id = 'tournamentLinkContainer';
+            tournamentLinkContainer.className = 'section';
+            const shareLink = getTournamentShareLink(currentTournamentId);
+            tournamentLinkContainer.innerHTML = `
+                <div style="background: #e7f3e7; border: 2px solid #28a745; border-radius: 10px; padding: 20px;">
+                    <h3 style="color: #28a745; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5em;">🔗</span>
+                        TOURNAMENT LINK
+                    </h3>
+                    <p style="margin: 5px 0 10px 0; color: #666;">Share this link to view the tournament results:</p>
+                    <div style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; border: 1px solid #ddd; word-break: break-all; margin-bottom: 10px; text-align: left; display: block;">
+                        <span id="shareLinkCompleted" style="display: block; text-align: left;">${shareLink}</span>
+                    </div>
+                    <button id="copyLinkBtnCompleted" onclick="copyShareLinkCompleted()" class="copy-btn">
+                        📋 Copy Link
+                    </button>
+                </div>
+            `;
+            detailPage.appendChild(tournamentLinkContainer);
+
+            // 10. DELETE TOURNAMENT (admin only)
+            if (isAdmin) {
+                const deleteTournamentSection = document.createElement('div');
+                deleteTournamentSection.id = 'deleteTournamentSection';
+                deleteTournamentSection.className = 'section';
+                deleteTournamentSection.style.textAlign = 'center';
+                deleteTournamentSection.style.marginTop = '30px';
+                deleteTournamentSection.innerHTML = `
+                    <button id="deleteTournamentBtn" class="btn-danger" style="padding: 12px 30px; font-size: 16px;" onclick="deleteTournament('${currentTournamentId}')">
+                        🗑️ Delete Tournament
+                    </button>
+                `;
+                detailPage.appendChild(deleteTournamentSection);
+            }
+
+            // Footer (version and UTC)
+            const footer = document.createElement('div');
+            footer.style.cssText = 'margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;';
+            footer.innerHTML = `
+                <span>v1.5.7</span>
+                <span>UTC: <span class="deviceUTC">--</span></span>
+            `;
+            detailPage.appendChild(footer);
+
+            // Mark as reorganized
+            pageReorganized = true;
+            console.log('✅ Page reorganization complete');
+        }
+
+        function createTopLeaderboardSection() {
+            const topLeaderboardSection = document.createElement('div');
+            topLeaderboardSection.id = 'topLeaderboardSection';
+            topLeaderboardSection.className = 'section';
+
+            const stats = generateLeaderboardStats();
+
+            topLeaderboardSection.innerHTML = `
+                <h2>🏅 Top Performers</h2>
+                <div style="background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px; margin-bottom: 15px;">
+                            🏅 INDIVIDUAL AWARDS
+                        </h3>
+                        
+                        ${stats.topScorers.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #ffc107; margin-bottom: 10px;">⚽ TOP SCORER${stats.topScorers.length > 1 ? 'S' : ''}</h4>
+                                ${stats.topScorers.map(p => `
+                                    <div style="padding: 8px; background: #fff8e1; border-left: 4px solid #ffc107; margin-bottom: 5px; border-radius: 4px;">
+                                        🥇 <strong>${p.name}</strong> (${teams[p.team].name}) - ${p.goals} goal${p.goals > 1 ? 's' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.topAssisters.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #667eea; margin-bottom: 10px;">🎯 TOP ASSIST${stats.topAssisters.length > 1 ? 'S' : ''}</h4>
+                                ${stats.topAssisters.map(p => `
+                                    <div style="padding: 8px; background: #e8eaf6; border-left: 4px solid #667eea; margin-bottom: 5px; border-radius: 4px;">
+                                        🥇 <strong>${p.name}</strong> (${teams[p.team].name}) - ${p.assists} assist${p.assists > 1 ? 's' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.topKeepers.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #28a745; margin-bottom: 10px;">🧤 BEST GOALKEEPER${stats.topKeepers.length > 1 ? 'S' : ''}</h4>
+                                ${stats.topKeepers.map(k => `
+                                    <div style="padding: 8px; background: #e8f5e9; border-left: 4px solid #28a745; margin-bottom: 5px; border-radius: 4px;">
+                                        🥇 <strong>${k.name}</strong> (${teams[k.team].name}) - ${k.saves} save${k.saves > 1 ? 's' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.ownGoalScorers.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #dc3545; margin-bottom: 10px;">😬 OWN GOAL${stats.ownGoalScorers.length > 1 ? 'S' : ''}</h4>
+                                ${stats.ownGoalScorers.map(p => `
+                                    <div style="padding: 8px; background: #ffebee; border-left: 4px solid #dc3545; margin-bottom: 5px; border-radius: 4px;">
+                                        • <strong>${p.name}</strong> (${teams[p.team].name}) - ${p.ownGoals}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div>
+                        <h3 style="color: #764ba2; border-bottom: 2px solid #764ba2; padding-bottom: 10px; margin-bottom: 15px;">
+                            🏆 TEAM AWARDS
+                        </h3>
+
+                        ${stats.bestAttack.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #d32f2f; margin-bottom: 10px;">🔥 BEST ATTACK - MOST GOALS SCORED</h4>
+                                ${stats.bestAttack.map(t => `
+                                    <div style="padding: 8px; background: #ffebee; border-left: 4px solid #d32f2f; margin-bottom: 5px; border-radius: 4px;">
+                                        <strong>${teams[t.key].name}</strong> - ${t.gf} goals
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.bestDefense.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #1976d2; margin-bottom: 10px;">🛡️ BEST DEFENSE - LEAST GOALS CONCEDED</h4>
+                                ${stats.bestDefense.map(t => `
+                                    <div style="padding: 8px; background: #e3f2fd; border-left: 4px solid #1976d2; margin-bottom: 5px; border-radius: 4px;">
+                                        <strong>${teams[t.key].name}</strong> - ${t.ga} goals conceded
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.mostCleanSheets.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #17a2b8; margin-bottom: 10px;">🧤 MOST CLEAN SHEETS</h4>
+                                ${stats.mostCleanSheets.map(t => `
+                                    <div style="padding: 8px; background: #e0f7fa; border-left: 4px solid #17a2b8; margin-bottom: 5px; border-radius: 4px;">
+                                        <strong>${teams[t.key].name}</strong> - ${t.cs} clean sheets
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            return topLeaderboardSection;
+        }
+
+        function separateFinalMatch() {
+            // Find and return the final match HTML, remove it from main matches grid
+            const finalMatch = matches.find(m => m.round === 'final');
+            if (!finalMatch) return null;
+
+            const isFinal = true;
+            return `
+                <div class="match-card final-match" id="match-${finalMatch.id}">
+                    <div class="match-header">
+                        <strong>🏆 FINAL</strong>
+                        <span style="color: ${finalMatch.status === 'completed' ? 'green' : finalMatch.status === 'live' ? 'red' : 'gray'}">
+                            ${finalMatch.status.toUpperCase()}
+                        </span>
+                    </div>
+
+                    ${finalMatch.keeper1 && finalMatch.keeper2 ? `
+                        <div class="keeper-info">
+                            <div>🧤 ${teams[finalMatch.team1].name}: ${finalMatch.keeper1}</div>
+                            <div>🧤 ${teams[finalMatch.team2].name}: ${finalMatch.keeper2}</div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="match-teams">
+                        <span style="color: ${teams[finalMatch.team1].color}">${teams[finalMatch.team1].name}</span>
+                        <span class="score">${finalMatch.score1} - ${finalMatch.score2}</span>
+                        <span style="color: ${teams[finalMatch.team2].color}">${teams[finalMatch.team2].name}</span>
+                    </div>
+
+                    <div class="timer" id="timer-${finalMatch.id}">${
+                        finalMatch.status === 'completed' && finalMatch.startTimeUTC && finalMatch.endTimeUTC
+                            ? (() => {
+                                const startTime = new Date(finalMatch.startTimeUTC).getTime();
+                                const endTime = new Date(finalMatch.endTimeUTC).getTime();
+                                const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
+                                const remainingSeconds = elapsedSeconds >= 600 ? 0 : Math.max(0, 600 - elapsedSeconds);
+                                const mins = Math.floor(remainingSeconds / 60);
+                                const secs = remainingSeconds % 60;
+                                return `${mins}:${secs.toString().padStart(2, '0')}`;
+                            })()
+                            : '10:00'
+                    }</div>
+
+                    <div class="goal-log" id="goals-${finalMatch.id}">
+                        ${finalMatch.goals.map(g => `
+                            <div class="goal-item ${g.ownGoal ? 'own-goal' : ''} ${g.type === 'save' ? 'save-item' : ''}">
+                                ${g.type === 'save' ? '🧤' : '⚽'} ${g.time}' - ${teams[g.team].name} - ${g.scorer}${g.assist ? ` (Assist: ${g.assist})` : ''}${g.ownGoal ? ' [OWN GOAL]' : ''}${g.type === 'save' ? ' [SAVE]' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWinnerSection(winnerTeam) {
+            const winnerSection = document.getElementById('winnerSection');
+            if (!winnerSection) return;
+
+            const winnerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+                    <h1 style="font-size: 2.5em; margin: 0 0 15px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                        🏆 TOURNAMENT WINNER 🏆
+                    </h1>
+                    <div style="font-size: 3em; margin: 20px 0; font-weight: bold; text-shadow: 3px 3px 6px rgba(0,0,0,0.3);">
+                        ${teams[winnerTeam].name.toUpperCase()}
+                    </div>
+                    <div style="font-size: 1.2em; opacity: 0.9;">
+                        🎉 Congratulations! 🎉
+                    </div>
+                </div>
+            `;
+
+            winnerSection.innerHTML = winnerHTML;
+            
+            // Move winner section to the top (after header)
+            const detailPage = document.getElementById('tournamentDetailPage');
+            const header = detailPage.querySelector('div:first-child');
+            if (header && header.nextSibling) {
+                detailPage.insertBefore(winnerSection, header.nextSibling);
+            }
+        }
+
+        function renderTopLeaderboard() {
+            // Create top leaderboard section if it doesn't exist
+            let topLeaderboardSection = document.getElementById('topLeaderboardSection');
+            if (!topLeaderboardSection) {
+                topLeaderboardSection = document.createElement('div');
+                topLeaderboardSection.id = 'topLeaderboardSection';
+                topLeaderboardSection.className = 'section';
+                
+                // Insert after matches section
+                const matchesSection = document.getElementById('matchesSection');
+                if (matchesSection && matchesSection.nextSibling) {
+                    matchesSection.parentNode.insertBefore(topLeaderboardSection, matchesSection.nextSibling);
+                }
+            }
+
+            // Generate leaderboard stats
+            const stats = generateLeaderboardStats();
+
+            const html = `
+                <h2>🏅 Top Performers</h2>
+                <div style="background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px; margin-bottom: 15px;">
+                            🏅 INDIVIDUAL AWARDS
+                        </h3>
+                        
+                        ${stats.topScorers.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #ffc107; margin-bottom: 10px;">⚽ TOP SCORER${stats.topScorers.length > 1 ? 'S' : ''}</h4>
+                                ${stats.topScorers.map(p => `
+                                    <div style="padding: 8px; background: #fff8e1; border-left: 4px solid #ffc107; margin-bottom: 5px; border-radius: 4px;">
+                                        🥇 <strong>${p.name}</strong> (${teams[p.team].name}) - ${p.goals} goal${p.goals > 1 ? 's' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.topAssisters.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #667eea; margin-bottom: 10px;">🎯 TOP ASSIST${stats.topAssisters.length > 1 ? 'S' : ''}</h4>
+                                ${stats.topAssisters.map(p => `
+                                    <div style="padding: 8px; background: #e8eaf6; border-left: 4px solid #667eea; margin-bottom: 5px; border-radius: 4px;">
+                                        🥇 <strong>${p.name}</strong> (${teams[p.team].name}) - ${p.assists} assist${p.assists > 1 ? 's' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.topKeepers.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #28a745; margin-bottom: 10px;">🧤 BEST GOALKEEPER${stats.topKeepers.length > 1 ? 'S' : ''}</h4>
+                                ${stats.topKeepers.map(k => `
+                                    <div style="padding: 8px; background: #e8f5e9; border-left: 4px solid #28a745; margin-bottom: 5px; border-radius: 4px;">
+                                        🥇 <strong>${k.name}</strong> (${teams[k.team].name}) - ${k.saves} save${k.saves > 1 ? 's' : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.ownGoalScorers.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #dc3545; margin-bottom: 10px;">😬 OWN GOAL${stats.ownGoalScorers.length > 1 ? 'S' : ''}</h4>
+                                ${stats.ownGoalScorers.map(p => `
+                                    <div style="padding: 8px; background: #ffebee; border-left: 4px solid #dc3545; margin-bottom: 5px; border-radius: 4px;">
+                                        • <strong>${p.name}</strong> (${teams[p.team].name}) - ${p.ownGoals}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div>
+                        <h3 style="color: #764ba2; border-bottom: 2px solid #764ba2; padding-bottom: 10px; margin-bottom: 15px;">
+                            🏆 TEAM AWARDS
+                        </h3>
+
+                        ${stats.bestAttack.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #d32f2f; margin-bottom: 10px;">🔥 BEST ATTACK - MOST GOALS SCORED</h4>
+                                ${stats.bestAttack.map(t => `
+                                    <div style="padding: 8px; background: #ffebee; border-left: 4px solid #d32f2f; margin-bottom: 5px; border-radius: 4px;">
+                                        <strong>${teams[t.key].name}</strong> - ${t.gf} goals
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.bestDefense.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #1976d2; margin-bottom: 10px;">🛡️ BEST DEFENSE - LEAST GOALS CONCEDED</h4>
+                                ${stats.bestDefense.map(t => `
+                                    <div style="padding: 8px; background: #e3f2fd; border-left: 4px solid #1976d2; margin-bottom: 5px; border-radius: 4px;">
+                                        <strong>${teams[t.key].name}</strong> - ${t.ga} goals conceded
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${stats.mostCleanSheets.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="color: #17a2b8; margin-bottom: 10px;">🧤 MOST CLEAN SHEETS</h4>
+                                ${stats.mostCleanSheets.map(t => `
+                                    <div style="padding: 8px; background: #e0f7fa; border-left: 4px solid #17a2b8; margin-bottom: 5px; border-radius: 4px;">
+                                        <strong>${teams[t.key].name}</strong> - ${t.cs} clean sheets
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            topLeaderboardSection.innerHTML = html;
+            return topLeaderboardSection;
+        }
+
+        function generateLeaderboardStats() {
+            // Get sorted standings (excluding final match stats)
+            const sorted = Object.entries(standings)
+                .map(([key, val]) => ({ key, ...val, gd: val.gf - val.ga, cs: val.cleanSheets || 0 }))
+                .sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    if (b.gd !== a.gd) return b.gd - a.gd;
+                    if (b.gf !== a.gf) return b.gf - a.gf;
+                    return b.cs - a.cs;
+                });
+
+            // Top Scorers
+            const topScorersArr = Object.values(playerStats)
+                .filter(p => p.goals > 0)
+                .sort((a, b) => b.goals - a.goals);
+            const topScorers = topScorersArr.length > 0 
+                ? topScorersArr.filter(p => p.goals === topScorersArr[0].goals)
+                : [];
+
+            // Top Assisters
+            const topAssistsArr = Object.values(playerStats)
+                .filter(p => p.assists > 0)
+                .sort((a, b) => b.assists - a.assists);
+            const topAssisters = topAssistsArr.length > 0
+                ? topAssistsArr.filter(p => p.assists === topAssistsArr[0].assists)
+                : [];
+
+            // Top Keepers
+            const topKeeperArr = Object.values(keeperStats)
+                .filter(k => k.saves > 0)
+                .sort((a, b) => b.saves - a.saves);
+            const topKeepers = topKeeperArr.length > 0
+                ? topKeeperArr.filter(k => k.saves === topKeeperArr[0].saves)
+                : [];
+
+            // Own Goal Scorers
+            const ownGoalsArr = Object.values(playerStats)
+                .filter(p => p.ownGoals && p.ownGoals > 0)
+                .sort((a, b) => b.ownGoals - a.ownGoals);
+            const ownGoalScorers = ownGoalsArr.length > 0
+                ? ownGoalsArr.filter(p => p.ownGoals === ownGoalsArr[0].ownGoals)
+                : [];
+
+            // Best Attack (most goals)
+            const maxGoals = sorted[0].gf;
+            const bestAttack = sorted.filter(t => t.gf === maxGoals);
+
+            // Best Defense (least goals conceded)
+            const minConceded = [...sorted].sort((a, b) => a.ga - b.ga)[0].ga;
+            const bestDefense = sorted.filter(t => t.ga === minConceded);
+
+            // Most Clean Sheets
+            const maxCS = [...sorted].sort((a, b) => b.cs - a.cs)[0].cs;
+            const mostCleanSheets = sorted.filter(t => t.cs === maxCS);
+
+            return {
+                topScorers,
+                topAssisters,
+                topKeepers,
+                ownGoalScorers,
+                bestAttack,
+                bestDefense,
+                mostCleanSheets
+            };
+        }
+
+        function renderTournamentLinkSection() {
+            // Create or get the tournament link container
+            let tournamentLinkContainer = document.getElementById('tournamentLinkContainer');
+            if (!tournamentLinkContainer) {
+                tournamentLinkContainer = document.createElement('div');
+                tournamentLinkContainer.id = 'tournamentLinkContainer';
+                tournamentLinkContainer.className = 'section';
+            }
+
+            const shareLink = getTournamentShareLink(currentTournamentId);
+            
+            const linkHTML = `
+                <div style="background: #e7f3e7; border: 2px solid #28a745; border-radius: 10px; padding: 20px;">
+                    <h3 style="color: #28a745; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5em;">🔗</span>
+                        TOURNAMENT LINK
+                    </h3>
+                    <p style="margin: 5px 0 10px 0; color: #666;">Share this link to view the tournament results:</p>
+                    <div style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; border: 1px solid #ddd; word-break: break-all; margin-bottom: 10px; text-align: left; display: block;">
+                        <span id="shareLinkCompleted" style="display: block; text-align: left;">${shareLink}</span>
+                    </div>
+                    <button id="copyLinkBtnCompleted" onclick="copyShareLinkCompleted()" class="copy-btn">
+                        📋 Copy Link
+                    </button>
+                </div>
+            `;
+
+            tournamentLinkContainer.innerHTML = linkHTML;
+            return tournamentLinkContainer;
+        }
+
+        function copyShareLinkCompleted() {
+            const shareLink = document.getElementById('shareLinkCompleted').textContent;
+            const btn = document.getElementById('copyLinkBtnCompleted');
+            const originalText = btn.innerHTML;
+            
+            navigator.clipboard.writeText(shareLink).then(() => {
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = '#128C7E';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#25D366';
+                }, 2000);
+            }).catch(() => {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = shareLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = '#128C7E';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#25D366';
+                }, 2000);
+            });
+        }
+
+        function generateTournamentSummary() {
+            const summaryContent = document.getElementById('summaryMessageContent');
+            if (!summaryContent) return;
+
+            // Get the final match
+            const finalMatch = matches.find(m => m.round === 'final');
+            if (!finalMatch || finalMatch.status !== 'completed') return;
+
+            const winner = finalMatch.score1 > finalMatch.score2 ? finalMatch.team1 : finalMatch.team2;
+            const stats = generateLeaderboardStats();
+            const shareLink = getTournamentShareLink(currentTournamentId);
+
+            let message = `🏆 *FOOTBALL TOURNAMENT RESULTS* 🏆\n\n`;
+            message += `📅 *Date:* ${tournamentDate}\n\n`;
+            message += `━━━━━━━━━━━━━━━━━\n\n`;
+            
+            message += `🏆 *CHAMPION*\n`;
+            message += `👑 ${teams[winner].name.toUpperCase()} 👑\n\n`;
+            
+            message += `━━━━━━━━━━━━━━━━━\n\n`;
+            
+            // Individual Awards
+            message += `🏅 *INDIVIDUAL AWARDS*\n\n`;
+            
+            if (stats.topScorers.length > 0) {
+                message += `⚽ *TOP SCORER${stats.topScorers.length > 1 ? 'S' : ''}*\n`;
+                stats.topScorers.forEach(p => {
+                    message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.goals} goal${p.goals > 1 ? 's' : ''}\n`;
+                });
+                message += `\n`;
+            }
+            
+            if (stats.topAssisters.length > 0) {
+                message += `🎯 *TOP ASSIST${stats.topAssisters.length > 1 ? 'S' : ''}*\n`;
+                stats.topAssisters.forEach(p => {
+                    message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.assists} assist${p.assists > 1 ? 's' : ''}\n`;
+                });
+                message += `\n`;
+            }
+            
+            if (stats.topKeepers.length > 0) {
+                message += `🧤 *BEST GOALKEEPER${stats.topKeepers.length > 1 ? 'S' : ''}*\n`;
+                stats.topKeepers.forEach(k => {
+                    message += `🥇 ${k.name} (${teams[k.team].name}) - ${k.saves} save${k.saves > 1 ? 's' : ''}\n`;
+                });
+                message += `\n`;
+            }
+            
+            if (stats.ownGoalScorers.length > 0) {
+                message += `😬 *OWN GOAL${stats.ownGoalScorers.length > 1 ? 'S' : ''}*\n`;
+                stats.ownGoalScorers.forEach(p => {
+                    message += `• ${p.name} (${teams[p.team].name}) - ${p.ownGoals}\n`;
+                });
+                message += `\n`;
+            }
+            
+            message += `━━━━━━━━━━━━━━━━━\n\n`;
+            
+            // Team Awards
+            message += `🏆 *TEAM AWARDS*\n\n`;
+            
+            message += `🔥 *BEST ATTACK - MOST GOALS SCORED*\n`;
+            stats.bestAttack.forEach(t => {
+                message += `${teams[t.key].name} - ${t.gf} goals\n`;
+            });
+            message += `\n`;
+            
+            message += `🛡️ *BEST DEFENSE - LEAST GOALS CONCEDED*\n`;
+            stats.bestDefense.forEach(t => {
+                message += `${teams[t.key].name} - ${t.ga} goals conceded\n`;
+            });
+            message += `\n`;
+            
+            message += `🧤 *MOST CLEAN SHEETS*\n`;
+            stats.mostCleanSheets.forEach(t => {
+                message += `${teams[t.key].name} - ${t.cs} clean sheets\n`;
+            });
+            message += `\n`;
+            
+            message += `━━━━━━━━━━━━━━━━━\n\n`;
+            
+            message += `🔗 *View Full Tournament*\n`;
+            message += `${shareLink}\n\n`;
+            
+            message += `━━━━━━━━━━━━━━━━━\n\n`;
+            
+            message += `Thanks for participating! 🎉`;
+
+            summaryContent.textContent = message;
+        }
+
+        function copySummaryMessage() {
+            const content = document.getElementById('summaryMessageContent').textContent;
+            
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = '#128C7E';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#25D366';
+                }, 2000);
+            }).catch(() => {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = '#128C7E';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '#25D366';
+                }, 2000);
+            });
+        }
 
         function generateWhatsAppMessage() {
             // Only show WhatsApp message for admins
+            const whatsappBox = document.getElementById('whatsappMessageBox');
+            if (!whatsappBox) return; // Element doesn't exist yet
+            
             if (!isAdmin) {
-                document.getElementById('whatsappMessageBox').style.display = 'none';
+                whatsappBox.classList.add('hidden');
                 return;
             }
             
             // Show the WhatsApp message box
-            document.getElementById('whatsappMessageBox').classList.remove('hidden');
+            whatsappBox.classList.remove('hidden');
+            whatsappBox.style.display = 'block';
             
             let currentUrl = window.location.href;
             
@@ -2307,10 +3436,10 @@
 
         function copyWhatsAppMessage() {
             const messageContent = document.getElementById('messageContent').textContent;
+            const btn = document.getElementById('copyMessageBtn');
+            const originalText = btn.textContent;
             
             navigator.clipboard.writeText(messageContent).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                const originalText = btn.textContent;
                 btn.textContent = '✅ Copied!';
                 btn.style.background = '#128C7E';
                 
@@ -2319,7 +3448,20 @@
                     btn.style.background = '#25D366';
                 }, 2000);
             }).catch(err => {
-                alert('Failed to copy. Please select and copy manually.');
+                // Fallback for browsers that don't support clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = messageContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                btn.textContent = '✅ Copied!';
+                btn.style.background = '#128C7E';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#25D366';
+                }, 2000);
             });
         }
 
@@ -2496,7 +3638,10 @@
             message += `Thanks for participating! 🎉⚽\n`;
             message += `See you next time! 👋`;
             
-            document.getElementById('summaryMessageContent').textContent = message;
+            const summaryElement = document.getElementById('summaryMessageContent');
+            if (summaryElement) {
+                summaryElement.textContent = message;
+            }
         }
 
         function copySummaryMessage() {
@@ -2619,8 +3764,9 @@
                 const winner = final.score1 > final.score2 ? final.team1 : 
                               final.score2 > final.score1 ? final.team2 : null;
                 
-                if (winner) {
-                    document.getElementById('winnerSection').innerHTML = `
+                const winnerSection = document.getElementById('winnerSection');
+                if (winner && winnerSection) {
+                    winnerSection.innerHTML = `
                         <div class="winner-announcement" id="winnerAnnouncement">
                             <h2>🏆 TOURNAMENT WINNER 🏆</h2>
                             <h1 style="color: ${teams[winner].color}; font-size: 3em; margin: 20px 0;">
@@ -2631,7 +3777,10 @@
                     `;
                     
                     generateTournamentSummary();
-                    document.getElementById('tournamentSummarySection').classList.remove('hidden');
+                    const tournamentSummarySection = document.getElementById('tournamentSummarySection');
+                    if (tournamentSummarySection) {
+                        tournamentSummarySection.classList.remove('hidden');
+                    }
                 }
             }
         }, 1000);
