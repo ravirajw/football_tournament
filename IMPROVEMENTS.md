@@ -297,6 +297,32 @@ function safeGetElement(id, defaultAction = null) {
 
 ---
 
+## Refactor: Tournament Summary Extraction
+
+**Date:** 2 November 2025
+
+### What Changed
+- Extracted tournament summary message generation logic from `index.html` into a pure function in `js/tournamentSummary.js`.
+- Refactored `generateTournamentSummary()` in `index.html` to use the new function for summary rendering.
+- Added script import for `js/tournamentSummary.js` in `index.html`.
+- Verified no errors and deployed for live testing.
+
+### Why
+- Improves modularity and maintainability.
+- Enables easier testing and future enhancements of summary logic.
+- Keeps UI logic and data formatting separate.
+
+### How to Test
+- Complete a tournament as admin and verify the summary section displays correct results and awards.
+- Use the WhatsApp summary copy button and check message formatting.
+
+### Next Steps
+- Continue extracting other summary/UI logic as needed.
+- Monitor for edge cases and user feedback.
+
+---
+**Refactoring Progress:** Point 5 (Tournament Summary Extraction) ✅ Completed
+
 ## Implementation Strategy
 
 ### Phase 1 

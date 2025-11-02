@@ -406,7 +406,7 @@
                 <p style="color: #666;">Please wait while we fetch the tournament data</p>
             </div>
             <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-                <span>v1.6.1</span>
+                <span>v1.6.2</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             </div>
         </div>
@@ -426,7 +426,7 @@
                 </button>
             </div>
             <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-                <span>v1.6.1</span>
+                <span>v1.6.2</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             </div>
         </div>
@@ -469,7 +469,7 @@
             </div>
         </div>
         <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-            <span>v1.6.1</span>
+            <span>v1.6.2</span>
             <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
         </div>
@@ -611,7 +611,7 @@
         </div>
         
         <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-            <span>v1.6.1</span>
+            <span>v1.6.2</span>
             <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
         </div>
@@ -667,6 +667,7 @@
     
     <!-- Configuration Constants -->
     <script src="js/config.js"></script>
+    <script src="js/tournamentSummary.js"></script>
     
     <!-- Firebase Configuration (update with your credentials) -->
     <script src="js/firebase-config.js"></script>
@@ -2767,7 +2768,7 @@
             const footer = document.createElement('div');
             footer.style.cssText = 'margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;';
             footer.innerHTML = `
-                <span>v1.6.1</span>
+                <span>v1.6.2</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             `;
             detailPage.appendChild(footer);
@@ -3164,91 +3165,18 @@
         function generateTournamentSummary() {
             const summaryContent = document.getElementById('summaryMessageContent');
             if (!summaryContent) return;
-
-            // Get the final match
-            const finalMatch = matches.find(m => m.round === 'final');
-            if (!finalMatch || finalMatch.status !== 'completed') return;
-
-            const winner = finalMatch.score1 > finalMatch.score2 ? finalMatch.team1 : finalMatch.team2;
-            const stats = generateLeaderboardStats();
-            const shareLink = getTournamentShareLink(currentTournamentId);
-
-            let message = `🏆 *FOOTBALL TOURNAMENT RESULTS* 🏆\n\n`;
-            message += `📅 *Date:* ${tournamentDate}\n\n`;
-            message += `━━━━━━━━━━━━━━━━━\n\n`;
-            
-            message += `🏆 *CHAMPION*\n`;
-            message += `👑 ${teams[winner].name.toUpperCase()} 👑\n\n`;
-            
-            message += `━━━━━━━━━━━━━━━━━\n\n`;
-            
-            // Individual Awards
-            message += `🏅 *INDIVIDUAL AWARDS*\n\n`;
-            
-            if (stats.topScorers.length > 0) {
-                message += `⚽ *TOP SCORER${stats.topScorers.length > 1 ? 'S' : ''}*\n`;
-                stats.topScorers.forEach(p => {
-                    message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.goals} goal${p.goals > 1 ? 's' : ''}\n`;
-                });
-                message += `\n`;
-            }
-            
-            if (stats.topAssisters.length > 0) {
-                message += `🎯 *TOP ASSIST${stats.topAssisters.length > 1 ? 'S' : ''}*\n`;
-                stats.topAssisters.forEach(p => {
-                    message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.assists} assist${p.assists > 1 ? 's' : ''}\n`;
-                });
-                message += `\n`;
-            }
-            
-            if (stats.topKeepers.length > 0) {
-                message += `🧤 *BEST GOALKEEPER${stats.topKeepers.length > 1 ? 'S' : ''}*\n`;
-                stats.topKeepers.forEach(k => {
-                    message += `🥇 ${k.name} (${teams[k.team].name}) - ${k.saves} save${k.saves > 1 ? 's' : ''}\n`;
-                });
-                message += `\n`;
-            }
-            
-            if (stats.ownGoalScorers.length > 0) {
-                message += `😬 *OWN GOAL${stats.ownGoalScorers.length > 1 ? 'S' : ''}*\n`;
-                stats.ownGoalScorers.forEach(p => {
-                    message += `• ${p.name} (${teams[p.team].name}) - ${p.ownGoals}\n`;
-                });
-                message += `\n`;
-            }
-            
-            message += `━━━━━━━━━━━━━━━━━\n\n`;
-            
-            // Team Awards
-            message += `🏆 *TEAM AWARDS*\n\n`;
-            
-            message += `🔥 *BEST ATTACK - MOST GOALS SCORED*\n`;
-            stats.bestAttack.forEach(t => {
-                message += `${teams[t.key].name} - ${t.gf} goals\n`;
+            // Use the pure function from js/tournamentSummary.js
+            const message = window.generateTournamentSummaryMessage({
+                matches,
+                teams,
+                standings,
+                playerStats,
+                keeperStats,
+                tournamentDate,
+                currentTournamentId,
+                getTournamentShareLink,
+                generateLeaderboardStats
             });
-            message += `\n`;
-            
-            message += `🛡️ *BEST DEFENSE - LEAST GOALS CONCEDED*\n`;
-            stats.bestDefense.forEach(t => {
-                message += `${teams[t.key].name} - ${t.ga} goals conceded\n`;
-            });
-            message += `\n`;
-            
-            message += `🧤 *MOST CLEAN SHEETS*\n`;
-            stats.mostCleanSheets.forEach(t => {
-                message += `${teams[t.key].name} - ${t.cs} clean sheets\n`;
-            });
-            message += `\n`;
-            
-            message += `━━━━━━━━━━━━━━━━━\n\n`;
-            
-            message += `🔗 *View Full Tournament*\n`;
-            message += `${shareLink}\n\n`;
-            
-            message += `━━━━━━━━━━━━━━━━━\n\n`;
-            
-            message += `Thanks for participating! 🎉`;
-
             summaryContent.textContent = message;
         }
 
