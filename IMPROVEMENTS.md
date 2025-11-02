@@ -269,18 +269,45 @@ function safeGetElement(id, defaultAction = null) {
 
 **Version:** Updated from v1.5.7 to v1.6.0
 
+**Status:** ✅ Committed and pushed to code-refactoring branch
+
+#### Point 4: Extract Repeated Match Card HTML ✅ COMPLETED
+**What was done:**
+- Created centralized `createMatchCardHTML(match, options)` function
+- Replaced duplicate match card HTML in 3 locations:
+  - `renderMatches()` - reduced from 85 lines to 1 line
+  - `reorganizePageForCompletedTournament()` - reduced from 45 lines to 1 line  
+  - `separateFinalMatch()` - reduced from 50 lines to 1 line
+
+**Files Modified:**
+- `index.html` - Added createMatchCardHTML function, refactored 3 functions
+
+**Benefits:**
+- ✅ DRY principle - single source for match card HTML
+- ✅ Reduced code duplication by ~180 lines
+- ✅ Consistent styling across all match displays
+- ✅ Easier to maintain and update match card design
+- ✅ Added JSDoc documentation
+
+**Result:** ✅ All match cards now generated from single function
+
+**Version:** Updated from v1.6.0 to v1.6.1
+
 **Status:** Ready for testing and commit after user verification
 
 ---
 
 ## Implementation Strategy
 
-### Phase 1 (CURRENT - Awaiting Testing)
-✅ Point 1: Configuration constants (DONE - needs testing)
-✅ Point 2: Color scheme constants (DONE - needs testing)
+### Phase 1 
+✅ Point 1: Configuration constants (DONE - v1.6.0)
+✅ Point 2: Color scheme constants (DONE - v1.6.0)
+
+### Phase 2 (CURRENT - Awaiting Testing)
+✅ Point 4: Extract match card HTML (DONE - v1.6.1 - needs testing)
 🧪 **Action Required:** Test all tournament functions, then commit
 
-### Phase 2 (Next Session)
+### Phase 3 (Next Session)
 - Point 4: Extract match card HTML
 - Point 5: Extract tournament summary
 - Point 14: Add confirmation dialogs

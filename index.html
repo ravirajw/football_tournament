@@ -406,7 +406,7 @@
                 <p style="color: #666;">Please wait while we fetch the tournament data</p>
             </div>
             <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-                <span>v1.6.0</span>
+                <span>v1.6.1</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             </div>
         </div>
@@ -426,7 +426,7 @@
                 </button>
             </div>
             <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-                <span>v1.6.0</span>
+                <span>v1.6.1</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             </div>
         </div>
@@ -469,7 +469,7 @@
             </div>
         </div>
         <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-            <span>v1.6.0</span>
+            <span>v1.6.1</span>
             <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
         </div>
@@ -611,7 +611,7 @@
         </div>
         
         <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-            <span>v1.6.0</span>
+            <span>v1.6.1</span>
             <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
         </div>
@@ -1588,71 +1588,76 @@
             startMatch(currentMatchForKeeper);
         }
 
-        function renderMatches() {
-            const grid = document.getElementById('matchesGrid');
-            
-            // When tournament is complete, exclude final match from this grid
-            const tournamentComplete = isTournamentComplete();
-            const matchesToRender = tournamentComplete 
-                ? matches.filter(m => m.round !== 'final')
-                : matches;
-            
-            grid.innerHTML = matchesToRender.map(match => {
-                const isFinal = match.round === 'final';
-                return `
-                    <div class="match-card ${isFinal ? 'final-match' : ''}" id="match-${match.id}">
-                        <div class="match-header">
-                            <strong>${isFinal ? '🏆 FINAL' : `Round ${match.round} - Match ${(match.id % 3) + 1}`}</strong>
-                            <span style="color: ${match.status === 'completed' ? 'green' : match.status === 'live' ? 'red' : 'gray'}">
-                                ${match.status.toUpperCase()}
-                            </span>
+        /**
+         * Generate match card HTML
+         * Centralized function to create consistent match cards throughout the app
+         * @param {Object} match - The match object
+         * @param {Object} options - Options for rendering
+         * @param {boolean} options.showControls - Show admin controls (default: true if admin)
+         * @param {boolean} options.isFinal - Is this the final match (default: auto-detect)
+         * @returns {string} Match card HTML
+         */
+        function createMatchCardHTML(match, options = {}) {
+            const {
+                showControls = isAdmin,
+                isFinal = match.round === 'final'
+            } = options;
+
+            // Calculate timer display
+            let timerDisplay = '10:00';
+            if (match.status === 'completed' && match.startTimeUTC && match.endTimeUTC) {
+                const startTime = new Date(match.startTimeUTC).getTime();
+                const endTime = new Date(match.endTimeUTC).getTime();
+                const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
+                const remainingSeconds = elapsedSeconds >= CONFIG.MATCH_DURATION_SECONDS ? 0 : Math.max(0, CONFIG.MATCH_DURATION_SECONDS - elapsedSeconds);
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                timerDisplay = `${mins}:${secs.toString().padStart(2, '0')}`;
+            } else if (match.status === 'live' && match.startTimeUTC) {
+                const startTime = new Date(match.startTimeUTC).getTime();
+                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const remainingSeconds = Math.min(CONFIG.MATCH_DURATION_SECONDS, Math.max(0, CONFIG.MATCH_DURATION_SECONDS - elapsedSeconds));
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                timerDisplay = `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            // Determine status color
+            const statusColor = match.status === 'completed' ? COLORS.STATUS_COMPLETED : 
+                              match.status === 'live' ? COLORS.STATUS_LIVE : 
+                              COLORS.STATUS_PENDING;
+
+            return `
+                <div class="match-card ${isFinal ? 'final-match' : ''}" id="match-${match.id}">
+                    <div class="match-header">
+                        <strong>${isFinal ? '🏆 FINAL' : `Round ${match.round} - Match ${(match.id % 3) + 1}`}</strong>
+                        <span style="color: ${statusColor}">
+                            ${match.status.toUpperCase()}
+                        </span>
+                    </div>
+
+                    ${match.keeper1 && match.keeper2 ? `
+                        <div class="keeper-info">
+                            <div>🧤 ${teams[match.team1].name}: ${match.keeper1}</div>
+                            <div>🧤 ${teams[match.team2].name}: ${match.keeper2}</div>
                         </div>
+                    ` : ''}
+                    
+                    <div class="match-teams">
+                        <span style="color: ${teams[match.team1].color}">${teams[match.team1].name}</span>
+                        <span class="score">${match.score1} - ${match.score2}</span>
+                        <span style="color: ${teams[match.team2].color}">${teams[match.team2].name}</span>
+                    </div>
 
-                        ${match.keeper1 && match.keeper2 ? `
-                            <div class="keeper-info">
-                                <div>🧤 ${teams[match.team1].name}: ${match.keeper1}</div>
-                                <div>🧤 ${teams[match.team2].name}: ${match.keeper2}</div>
-                            </div>
-                        ` : ''}
-                        
-                        <div class="match-teams">
-                            <span style="color: ${teams[match.team1].color}">${teams[match.team1].name}</span>
-                            <span class="score">${match.score1} - ${match.score2}</span>
-                            <span style="color: ${teams[match.team2].color}">${teams[match.team2].name}</span>
-                        </div>
+                    <div class="timer" id="timer-${match.id}">${timerDisplay}</div>
 
-                        <div class="timer" id="timer-${match.id}">${
-                            match.status === 'completed' && match.startTimeUTC && match.endTimeUTC
-                                ? (() => {
-                                    const startTime = new Date(match.startTimeUTC).getTime();
-                                    const endTime = new Date(match.endTimeUTC).getTime();
-                                    const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
-                                    // If match went beyond configured duration, show 0:00
-                                    const remainingSeconds = elapsedSeconds >= CONFIG.MATCH_DURATION_SECONDS ? 0 : Math.max(0, CONFIG.MATCH_DURATION_SECONDS - elapsedSeconds);
-                                    const mins = Math.floor(remainingSeconds / 60);
-                                    const secs = remainingSeconds % 60;
-                                    return `${mins}:${secs.toString().padStart(2, '0')}`;
-                                })()
-                                : match.status === 'live' && match.startTimeUTC
-                                    ? (() => {
-                                        // Calculate current countdown time for live matches
-                                        const startTime = new Date(match.startTimeUTC).getTime();
-                                        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-                                        // Clamp between 0 and MATCH_DURATION_SECONDS to handle clock skew
-                                        const remainingSeconds = Math.min(CONFIG.MATCH_DURATION_SECONDS, Math.max(0, CONFIG.MATCH_DURATION_SECONDS - elapsedSeconds));
-                                        const mins = Math.floor(remainingSeconds / 60);
-                                        const secs = remainingSeconds % 60;
-                                        return `${mins}:${secs.toString().padStart(2, '0')}`;
-                                    })()
-                                    : '10:00'
-                        }</div>
-
+                    ${showControls ? `
                         <div class="match-controls">
-                            ${match.status === 'pending' && isAdmin ? `
+                            ${match.status === 'pending' ? `
                                 <button class="btn-success" onclick="showKeeperModal(${match.id})">Start</button>
                             ` : ''}
                             
-                            ${match.status === 'live' && isAdmin ? `
+                            ${match.status === 'live' ? `
                                 <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0;">
                                     🎲 Random
                                 </button>
@@ -1660,7 +1665,7 @@
                             ` : ''}
                         </div>
 
-                        ${match.status === 'live' && isAdmin ? `
+                        ${match.status === 'live' ? `
                             <div class="goal-section">
                                 <h4>Record Events</h4>
                                 <div style="margin: 10px 0; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -1670,17 +1675,30 @@
                                 </div>
                             </div>
                         ` : ''}
+                    ` : ''}
 
-                        <div class="goal-log" id="goals-${match.id}">
-                            ${match.goals.map(g => `
-                                <div class="goal-item ${g.ownGoal ? 'own-goal' : ''} ${g.type === 'save' ? 'save-item' : ''}">
-                                    ${g.type === 'save' ? '🧤' : '⚽'} ${g.time}' - ${teams[g.team].name} - ${g.scorer}${g.assist ? ` (Assist: ${g.assist})` : ''}${g.ownGoal ? ' [OWN GOAL]' : ''}${g.type === 'save' ? ' [SAVE]' : ''}
-                                </div>
-                            `).join('')}
-                        </div>
+                    <div class="goal-log" id="goals-${match.id}">
+                        ${match.goals.map(g => `
+                            <div class="goal-item ${g.ownGoal ? 'own-goal' : ''} ${g.type === 'save' ? 'save-item' : ''}">
+                                ${g.type === 'save' ? '🧤' : '⚽'} ${g.time}' - ${teams[g.team].name} - ${g.scorer}${g.assist ? ` (Assist: ${g.assist})` : ''}${g.ownGoal ? ' [OWN GOAL]' : ''}${g.type === 'save' ? ' [SAVE]' : ''}
+                            </div>
+                        `).join('')}
                     </div>
-                `;
-            }).join('');
+                </div>
+            `;
+        }
+
+        function renderMatches() {
+            const grid = document.getElementById('matchesGrid');
+            
+            // When tournament is complete, exclude final match from this grid
+            const tournamentComplete = isTournamentComplete();
+            const matchesToRender = tournamentComplete 
+                ? matches.filter(m => m.round !== 'final')
+                : matches;
+            
+            // Use centralized match card generator
+            grid.innerHTML = matchesToRender.map(match => createMatchCardHTML(match)).join('');
             
             // After rendering, immediately update timer displays for all live matches
             // This ensures accurate display even if intervals haven't ticked yet
@@ -2683,54 +2701,8 @@
             // Re-render matches (will exclude final due to filter in renderMatches)
             const grid = document.getElementById('matchesGrid');
             const leagueMatches = matches.filter(m => m.round !== 'final');
-            grid.innerHTML = leagueMatches.map(match => {
-                const isFinal = false;
-                return `
-                    <div class="match-card" id="match-${match.id}">
-                        <div class="match-header">
-                            <strong>Round ${match.round} - Match ${(match.id % 3) + 1}</strong>
-                            <span style="color: ${match.status === 'completed' ? 'green' : match.status === 'live' ? 'red' : 'gray'}">
-                                ${match.status.toUpperCase()}
-                            </span>
-                        </div>
-
-                        ${match.keeper1 && match.keeper2 ? `
-                            <div class="keeper-info">
-                                <div>🧤 ${teams[match.team1].name}: ${match.keeper1}</div>
-                                <div>🧤 ${teams[match.team2].name}: ${match.keeper2}</div>
-                            </div>
-                        ` : ''}
-                        
-                        <div class="match-teams">
-                            <span style="color: ${teams[match.team1].color}">${teams[match.team1].name}</span>
-                            <span class="score">${match.score1} - ${match.score2}</span>
-                            <span style="color: ${teams[match.team2].color}">${teams[match.team2].name}</span>
-                        </div>
-
-                        <div class="timer" id="timer-${match.id}">${
-                            match.status === 'completed' && match.startTimeUTC && match.endTimeUTC
-                                ? (() => {
-                                    const startTime = new Date(match.startTimeUTC).getTime();
-                                    const endTime = new Date(match.endTimeUTC).getTime();
-                                    const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
-                                    const remainingSeconds = elapsedSeconds >= CONFIG.MATCH_DURATION_SECONDS ? 0 : Math.max(0, CONFIG.MATCH_DURATION_SECONDS - elapsedSeconds);
-                                    const mins = Math.floor(remainingSeconds / 60);
-                                    const secs = remainingSeconds % 60;
-                                    return `${mins}:${secs.toString().padStart(2, '0')}`;
-                                })()
-                                : '10:00'
-                        }</div>
-
-                        <div class="goal-log" id="goals-${match.id}">
-                            ${match.goals.map(g => `
-                                <div class="goal-item ${g.ownGoal ? 'own-goal' : ''} ${g.type === 'save' ? 'save-item' : ''}">
-                                    ${g.type === 'save' ? '🧤' : '⚽'} ${g.time}' - ${teams[g.team].name} - ${g.scorer}${g.assist ? ` (Assist: ${g.assist})` : ''}${g.ownGoal ? ' [OWN GOAL]' : ''}${g.type === 'save' ? ' [SAVE]' : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            // Use centralized match card generator (no controls since tournament is complete)
+            grid.innerHTML = leagueMatches.map(match => createMatchCardHTML(match, { showControls: false })).join('');
 
             // 8. TOURNAMENT SUMMARY (admin only)
             if (isAdmin) {
@@ -2795,7 +2767,7 @@
             const footer = document.createElement('div');
             footer.style.cssText = 'margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;';
             footer.innerHTML = `
-                <span>v1.6.0</span>
+                <span>v1.6.1</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             `;
             detailPage.appendChild(footer);
@@ -2914,52 +2886,8 @@
             const finalMatch = matches.find(m => m.round === 'final');
             if (!finalMatch) return null;
 
-            const isFinal = true;
-            return `
-                <div class="match-card final-match" id="match-${finalMatch.id}">
-                    <div class="match-header">
-                        <strong>🏆 FINAL</strong>
-                        <span style="color: ${finalMatch.status === 'completed' ? 'green' : finalMatch.status === 'live' ? 'red' : 'gray'}">
-                            ${finalMatch.status.toUpperCase()}
-                        </span>
-                    </div>
-
-                    ${finalMatch.keeper1 && finalMatch.keeper2 ? `
-                        <div class="keeper-info">
-                            <div>🧤 ${teams[finalMatch.team1].name}: ${finalMatch.keeper1}</div>
-                            <div>🧤 ${teams[finalMatch.team2].name}: ${finalMatch.keeper2}</div>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="match-teams">
-                        <span style="color: ${teams[finalMatch.team1].color}">${teams[finalMatch.team1].name}</span>
-                        <span class="score">${finalMatch.score1} - ${finalMatch.score2}</span>
-                        <span style="color: ${teams[finalMatch.team2].color}">${teams[finalMatch.team2].name}</span>
-                    </div>
-
-                    <div class="timer" id="timer-${finalMatch.id}">${
-                        finalMatch.status === 'completed' && finalMatch.startTimeUTC && finalMatch.endTimeUTC
-                            ? (() => {
-                                const startTime = new Date(finalMatch.startTimeUTC).getTime();
-                                const endTime = new Date(finalMatch.endTimeUTC).getTime();
-                                const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
-                                const remainingSeconds = elapsedSeconds >= CONFIG.MATCH_DURATION_SECONDS ? 0 : Math.max(0, CONFIG.MATCH_DURATION_SECONDS - elapsedSeconds);
-                                const mins = Math.floor(remainingSeconds / 60);
-                                const secs = remainingSeconds % 60;
-                                return `${mins}:${secs.toString().padStart(2, '0')}`;
-                            })()
-                            : '10:00'
-                    }</div>
-
-                    <div class="goal-log" id="goals-${finalMatch.id}">
-                        ${finalMatch.goals.map(g => `
-                            <div class="goal-item ${g.ownGoal ? 'own-goal' : ''} ${g.type === 'save' ? 'save-item' : ''}">
-                                ${g.type === 'save' ? '🧤' : '⚽'} ${g.time}' - ${teams[g.team].name} - ${g.scorer}${g.assist ? ` (Assist: ${g.assist})` : ''}${g.ownGoal ? ' [OWN GOAL]' : ''}${g.type === 'save' ? ' [SAVE]' : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
+            // Use centralized match card generator (no controls since tournament is complete)
+            return createMatchCardHTML(finalMatch, { showControls: false, isFinal: true });
         }
 
         function renderWinnerSection(winnerTeam) {
