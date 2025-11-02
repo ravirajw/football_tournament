@@ -235,12 +235,50 @@ function safeGetElement(id, defaultAction = null) {
 
 ---
 
+---
+
+## ✅ COMPLETED CHANGES
+
+### v1.6.0 - Configuration Constants Refactoring
+
+#### Point 1: Configuration Constants ✅ COMPLETED
+**What was done:**
+- Created/updated `js/config.js` with CONFIG object containing:
+  - `MATCH_DURATION_SECONDS: 600`
+  - `TIMER_UPDATE_INTERVAL: 1000`
+  - `UTC_CLOCK_INTERVAL: 1000`
+  - `STORAGE_POLL_INTERVAL: 2000`
+  - `COMPLETION_CHECK_INTERVAL: 1000`
+
+**Files Modified:**
+- `js/config.js` - Added CONFIG constants
+- `index.html` - Replaced 17 hardcoded `600` values with `CONFIG.MATCH_DURATION_SECONDS`
+- `index.html` - Replaced 4 setInterval calls with CONFIG constants
+- `index.html` - Added `<script src="js/config.js"></script>` reference
+- `index.html` - Removed inline CONFIG definition (moved to separate file)
+
+**Result:** ✅ Match duration and all timing intervals now configurable from single file
+
+#### Point 2: Color Scheme Constants ✅ COMPLETED
+**What was done:**
+- Added COLORS object to `js/config.js` with all UI colors
+- Team colors, status colors, and theme colors defined
+- Ready to be applied throughout HTML (future task)
+
+**Result:** ✅ All color constants defined and ready for use
+
+**Version:** Updated from v1.5.7 to v1.6.0
+
+**Status:** Ready for testing and commit after user verification
+
+---
+
 ## Implementation Strategy
 
-### Phase 1 (This Session)
-✅ Create IMPROVEMENTS.md
-✅ Point 1: Add configuration constants
-✅ Point 2: Extract color schemes
+### Phase 1 (CURRENT - Awaiting Testing)
+✅ Point 1: Configuration constants (DONE - needs testing)
+✅ Point 2: Color scheme constants (DONE - needs testing)
+🧪 **Action Required:** Test all tournament functions, then commit
 
 ### Phase 2 (Next Session)
 - Point 4: Extract match card HTML
