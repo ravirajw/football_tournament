@@ -118,6 +118,11 @@ button {
   color: white;
 }
 
+.btn-success:hover {
+  background: #218839;
+  transform: translateY(-2px);
+}
+
 .btn-danger {
   background: #dc3545;
   color: white;

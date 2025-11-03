@@ -56,10 +56,10 @@ function teamSetupView() {
   buttonsDiv.style.marginTop = "16px";
   buttonsDiv.style.flexWrap = "wrap"; // Wrap to vertical on small screens
   buttonsDiv.innerHTML = `
-    <button class="btn-primary" style="flex: 1; min-width: 150px; padding: 15px 40px; font-size: 18px" onclick="addTestPlayers()">
+    <button class="btn-primary" style="flex: 1; min-width: 150px; padding: 16px 40px; font-size: 18px" onclick="addTestPlayers()">
       Add Test Players
     </button>
-    <button class="btn-success" style="flex: 1; min-width: 150px; padding: 15px 40px; font-size: 18px" onclick="startTournament()">
+    <button class="btn-success" style="flex: 1; min-width: 150px; padding: 16px 40px; font-size: 18px" onclick="startTournament()">
       Start Tournament
     </button>
   `;

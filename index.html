@@ -115,6 +115,11 @@
         color: white;
       }
 
+      .btn-success:hover {
+        background: #218839;
+        transform: translateY(-2px);
+      }
+
       .btn-danger {
         background: #dc3545;
         color: white;
@@ -821,50 +826,12 @@
       </div>
     </div>
 
-    <div class="modal" id="adminPasswordModal">
-      <div class="modal-content">
-        <h2 style="margin-bottom: 20px; color: #667eea">
-          🔐 Set Admin Password
-        </h2>
-        <p style="margin-bottom: 15px; color: #666">
-          Create a password to manage this tournament. You'll need this password
-          to start matches, record events, and make changes.
-        </p>
-        <input
-          type="password"
-          id="adminPasswordInput"
-          placeholder="Enter admin password"
-          style="
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            border: 2px solid #667eea;
-            border-radius: 5px;
-            font-size: 16px;
-          "
-        />
-        <input
-          type="password"
-          id="adminPasswordConfirm"
-          placeholder="Confirm admin password"
-          style="
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 2px solid #667eea;
-            border-radius: 5px;
-            font-size: 16px;
-          "
-        />
-        <button
-          class="btn-success"
-          style="width: 100%"
-          onclick="setAdminPassword()"
-        >
-          Start Tournament
-        </button>
-      </div>
-    </div>
+    <script src="UIComponents/adminPasswordModal.js"></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        createAdminPasswordModal();
+      });
+    </script>
 
     <div class="modal" id="adminLoginModal">
       <div class="modal-content">
