@@ -125,6 +125,11 @@
         color: white;
       }
 
+      .btn-danger:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+      }
+
       .btn-warning {
         background: #ffc107;
         color: #333;
@@ -516,49 +521,18 @@
       <!-- Tournament Detail Page -->
       <div id="tournamentDetailPage" class="page">
         <!-- Header with Date and Admin Controls -->
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-          "
-        >
-          <div style="font-size: 1.1em; color: #666">
-            📅 <strong id="dateText"></strong>
-          </div>
-          <div style="display: flex; align-items: center; gap: 15px">
-            <div id="adminControls" style="display: none">
-              <button
-                class="btn-primary"
-                onclick="showAdminLogin()"
-                style="padding: 8px 16px"
-              >
-                🔐 Admin Login
-              </button>
-            </div>
-            <div
-              id="adminStatus"
-              style="display: none; color: #28a745; font-weight: bold"
-            >
-              ✅ Admin Mode
-              <button
-                onclick="logoutAdmin()"
-                style="
-                  margin-left: 10px;
-                  padding: 5px 10px;
-                  background: #dc3545;
-                  color: white;
-                  border: none;
-                  border-radius: 5px;
-                  cursor: pointer;
-                "
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
+        <div id="header-admin-controls"></div>
+        <script src="UIComponents/headerWithAdminControls.js"></script>
+        <script>
+          window.addEventListener("DOMContentLoaded", function () {
+            const headerContainer = document.getElementById(
+              "header-admin-controls"
+            );
+            if (headerContainer) {
+              headerContainer.appendChild(headerWithAdminControls());
+            }
+          });
+        </script>
 
         <!-- WATCH LIVE Section (dynamically populated, visible to all) -->
         <div id="watchLiveMessageContainer"></div>
