@@ -406,7 +406,7 @@
                 <p style="color: #666;">Please wait while we fetch the tournament data</p>
             </div>
             <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-                <span>v1.6.2</span>
+                <span>v1.7.1</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             </div>
         </div>
@@ -426,7 +426,7 @@
                 </button>
             </div>
             <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-                <span>v1.6.2</span>
+                <span>v1.7.1</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             </div>
         </div>
@@ -469,7 +469,7 @@
             </div>
         </div>
         <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-            <span>v1.6.2</span>
+            <span>v1.7.1</span>
             <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
         </div>
@@ -611,7 +611,7 @@
         </div>
         
         <div style="margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;">
-            <span>v1.6.2</span>
+            <span>v1.7.1</span>
             <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
         </div>
@@ -667,6 +667,7 @@
     
     <!-- Configuration Constants -->
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/tournamentSummary.js"></script>
     
     <!-- Firebase Configuration (update with your credentials) -->
@@ -753,21 +754,8 @@
                 }
             } else {
                 console.log('Loading tournaments from localStorage...');
-                const stored = localStorage.getItem('footballTournaments');
-                console.log('Raw localStorage data:', stored);
-                
-                if (stored) {
-                    try {
-                        allTournaments = JSON.parse(stored);
-                        console.log('Successfully parsed tournaments:', allTournaments);
-                    } catch(e) {
-                        console.error('Error parsing tournaments from localStorage:', e);
-                        allTournaments = {};
-                    }
-                } else {
-                    console.log('No tournaments found in localStorage');
-                    allTournaments = {};
-                }
+                allTournaments = Utils.safeLoadFromLocalStorage('footballTournaments', {});
+                console.log('Successfully loaded tournaments:', allTournaments);
             }
         }
 
@@ -780,8 +768,10 @@
                     console.error('Error saving to Firebase:', e);
                 }
             } else {
-                localStorage.setItem('footballTournaments', JSON.stringify(allTournaments));
-                console.log('✅ Saved to localStorage');
+                const success = Utils.safeSaveToLocalStorage('footballTournaments', allTournaments);
+                if (success) {
+                    console.log('✅ Saved to localStorage');
+                }
             }
         }
 
@@ -926,28 +916,30 @@
 
             // Update UI - tournament sections are already visible in the page
             console.log('Updating tournament UI...');
-            document.getElementById('dateText').textContent = tournamentDate;
-            
+            Utils.safeSetText('dateText', tournamentDate);
+
             // Show admin status or login button based on session
             if (isAdmin) {
-                document.getElementById('adminControls').style.display = 'none';
-                document.getElementById('adminStatus').style.display = 'block';
+                Utils.safeSetStyle('adminControls', 'display', 'none');
+                Utils.safeSetStyle('adminStatus', 'display', 'block');
                 // Show admin-only sections
-                document.getElementById('whatsappMessageBox').classList.remove('hidden');
-                const deleteSection = document.getElementById('deleteTournamentSection');
+                const whatsappBox = Utils.safeGetElement('whatsappMessageBox');
+                if (whatsappBox) whatsappBox.classList.remove('hidden');
+                const deleteSection = Utils.safeGetElement('deleteTournamentSection');
                 if (deleteSection) {
                     deleteSection.style.display = 'block';
                     // Set up delete button with correct tournament ID
-                    const deleteBtn = document.getElementById('deleteTournamentBtn');
+                    const deleteBtn = Utils.safeGetElement('deleteTournamentBtn');
                     if (deleteBtn) {
                         deleteBtn.onclick = () => deleteTournament(currentTournamentId);
                     }
                 }
             } else {
-                document.getElementById('adminControls').style.display = 'block';
-                document.getElementById('adminStatus').style.display = 'none';
+                Utils.safeSetStyle('adminControls', 'display', 'block');
+                Utils.safeSetStyle('adminStatus', 'display', 'none');
                 // Hide admin-only sections
-                document.getElementById('whatsappMessageBox').classList.add('hidden');
+                const whatsappBox = Utils.safeGetElement('whatsappMessageBox');
+                if (whatsappBox) whatsappBox.classList.add('hidden');
                 const deleteSection = document.getElementById('deleteTournamentSection');
                 if (deleteSection) {
                     deleteSection.style.display = 'none';
@@ -992,11 +984,9 @@
                     }
                 }
                 
-                // Also save to localStorage to update the local copy
-                localStorage.setItem('footballTournaments', JSON.stringify(allTournaments));
-                console.log('✅ Deleted from localStorage');
-                
-                if (currentTournamentId === tournamentId) {
+                    // Also save to localStorage to update the local copy
+                    Utils.safeSaveToLocalStorage('footballTournaments', allTournaments);
+                    console.log('✅ Deleted from localStorage');                if (currentTournamentId === tournamentId) {
                     // Reset to setup page
                     location.href = location.href.split('?')[0];
                 }
@@ -1011,10 +1001,10 @@
             }
             
             const shareLink = getTournamentShareLink(currentTournamentId);
-            const watchLiveDiv = document.getElementById('watchLiveMessage');
+            const watchLiveDiv = Utils.safeGetElement('watchLiveMessage');
             if (watchLiveDiv) {
                 watchLiveDiv.style.display = 'block';
-                document.getElementById('shareLink').textContent = shareLink;
+                Utils.safeSetText('shareLink', shareLink);
             } else {
                 // Create the watch live message with WhatsApp-style UI (left-aligned)
                 const watchLiveHTML = `
@@ -1322,8 +1312,8 @@
         }
 
         function setAdminPassword() {
-            const password = document.getElementById('adminPasswordInput').value;
-            const confirm = document.getElementById('adminPasswordConfirm').value;
+            const password = Utils.safeGetValue('adminPasswordInput');
+            const confirm = Utils.safeGetValue('adminPasswordConfirm');
 
             if (!password || password.length < 4) {
                 alert('Password must be at least 4 characters long');
@@ -1337,7 +1327,7 @@
 
             adminPassword = password;
             isAdmin = true;
-            document.getElementById('adminPasswordModal').style.display = 'none';
+            Utils.safeSetStyle('adminPasswordModal', 'display', 'none');
 
             // Generate unique tournament ID
             currentTournamentId = generateTournamentId();
@@ -1443,7 +1433,7 @@
         }
 
         function verifyAdminLogin() {
-            const enteredPassword = document.getElementById('adminLoginInput').value;
+            const enteredPassword = Utils.safeGetValue('adminLoginInput');
             
             if (enteredPassword === adminPassword) {
                 isAdmin = true;
@@ -1451,10 +1441,11 @@
                 // Store admin session for this tournament
                 sessionStorage.setItem(`admin_${currentTournamentId}`, 'true');
                 
-                document.getElementById('adminLoginModal').style.display = 'none';
-                document.getElementById('adminLoginInput').value = '';
-                document.getElementById('adminControls').style.display = 'none';
-                document.getElementById('adminStatus').style.display = 'block';
+                Utils.safeSetStyle('adminLoginModal', 'display', 'none');
+                const loginInput = Utils.safeGetElement('adminLoginInput');
+                if (loginInput) loginInput.value = '';
+                Utils.safeSetStyle('adminControls', 'display', 'none');
+                Utils.safeSetStyle('adminStatus', 'display', 'block');
                 
                 // Show admin-only sections (check if they exist)
                 const whatsappBox = document.getElementById('whatsappMessageBox');
@@ -1525,20 +1516,18 @@
                 whatsappBox.style.display = 'none';
             }
             
-            const deleteSection = document.getElementById('deleteTournamentSection');
+            const deleteSection = Utils.safeGetElement('deleteTournamentSection');
             if (deleteSection) {
                 deleteSection.style.display = 'none';
             }
 
-            const tournamentSummarySection = document.getElementById('tournamentSummarySection');
+            const tournamentSummarySection = Utils.safeGetElement('tournamentSummarySection');
             if (tournamentSummarySection) {
                 tournamentSummarySection.style.display = 'none';
             }
             
-            const adminStatus = document.getElementById('adminStatus');
-            const adminControls = document.getElementById('adminControls');
-            if (adminStatus) adminStatus.style.display = 'none';
-            if (adminControls) adminControls.style.display = 'block';
+            Utils.safeSetStyle('adminStatus', 'display', 'none');
+            Utils.safeSetStyle('adminControls', 'display', 'block');
             
             // Reset the page reorganization flag and reload
             pageReorganized = false;
@@ -2768,7 +2757,7 @@
             const footer = document.createElement('div');
             footer.style.cssText = 'margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;';
             footer.innerHTML = `
-                <span>v1.6.2</span>
+                <span>v1.7.1</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             `;
             detailPage.appendChild(footer);
@@ -3292,15 +3281,17 @@
             message += `━━━━━━━━━━━━━━━━━\n\n`;
             message += `Let's go! 🎉⚽🔥`;
             
-            document.getElementById('messageContent').textContent = message;
+            Utils.safeSetText('messageContent', message);
         }
 
         function copyWhatsAppMessage() {
-            const messageContent = document.getElementById('messageContent').textContent;
-            const btn = document.getElementById('copyMessageBtn');
+            const messageContent = Utils.safeGetElement('messageContent');
+            const btn = Utils.safeGetElement('copyMessageBtn');
+            if (!messageContent || !btn) return;
+            
             const originalText = btn.textContent;
             
-            navigator.clipboard.writeText(messageContent).then(() => {
+            navigator.clipboard.writeText(messageContent.textContent).then(() => {
                 btn.textContent = '✅ Copied!';
                 btn.style.background = '#128C7E';
                 
