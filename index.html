@@ -807,43 +807,13 @@
       });
     </script>
 
-    <div class="modal" id="adminLoginModal">
-      <div class="modal-content">
-        <h2 style="margin-bottom: 20px; color: #667eea">🔐 Admin Login</h2>
-        <p style="margin-bottom: 15px; color: #666">
-          Enter the admin password to manage this tournament.
-        </p>
-        <input
-          type="password"
-          id="adminLoginInput"
-          placeholder="Enter admin password"
-          style="
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 2px solid #667eea;
-            border-radius: 5px;
-            font-size: 16px;
-          "
-        />
-        <div style="display: flex; gap: 10px">
-          <button
-            class="btn-danger"
-            style="flex: 1"
-            onclick="closeAdminLogin()"
-          >
-            Cancel
-          </button>
-          <button
-            class="btn-success"
-            style="flex: 1"
-            onclick="verifyAdminLogin()"
-          >
-            Login
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Tournament Login Modal -->
+    <script src="UIComponents/adminLoginModal.js"></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        createAdminLoginModal();
+      });
+    </script>
 
     <div class="modal" id="keeperModal">
       <div class="modal-content">
