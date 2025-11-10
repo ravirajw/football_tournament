@@ -36,6 +36,8 @@ function containerView({ title, content }) {
   // Main content
   const contentElem = document.createElement("div");
   contentElem.style.width = "100%";
+  contentElem.style.boxSizing = "border-box";
+  contentElem.style.overflow = "hidden";
   if (Array.isArray(content)) {
     content.forEach((child) => contentElem.appendChild(child));
   } else if (content instanceof HTMLElement) {

@@ -4153,9 +4153,7 @@
           const topGoals = topScorersArr[0].goals;
           const topScorers = topScorersArr.filter((p) => p.goals === topGoals);
 
-          message += `⚽ *TOP SCORER${
-            topScorers.length > 1 ? "S" : ""
-          }*\n`;
+          message += `⚽ *TOP SCORER${topScorers.length > 1 ? "S" : ""}*\n`;
           topScorers.forEach((p) => {
             message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.goals} goal${
               p.goals > 1 ? "s" : ""
@@ -4174,9 +4172,7 @@
             (p) => p.assists === topAssistCount
           );
 
-          message += `🎯 *TOP ASSIST${
-            topAssisters.length > 1 ? "S" : ""
-          }*\n`;
+          message += `🎯 *TOP ASSIST${topAssisters.length > 1 ? "S" : ""}*\n`;
           topAssisters.forEach((p) => {
             message += `🥇 ${p.name} (${teams[p.team].name}) - ${
               p.assists
