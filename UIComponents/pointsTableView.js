@@ -10,6 +10,7 @@ function pointsTableView() {
   // Create the table element
   const table = document.createElement("table");
   table.className = "points-table";
+  table.style.minWidth = "600px"; // Ensure table has minimum width to trigger scroll on mobile
   table.innerHTML = `
     <thead>
       <tr>
@@ -34,6 +35,7 @@ function pointsTableView() {
   tiebreakerInfo.style.marginTop = "16px";
   tiebreakerInfo.style.fontSize = "0.85em";
   tiebreakerInfo.style.color = "#666";
+  tiebreakerInfo.style.wordWrap = "break-word";
   tiebreakerInfo.innerHTML = `
     <strong>* Tiebreaker Order:</strong> 1. Points, 2. Goal Difference
     (GD), 3. Head-to-Head (H2H), 4. Goals Scored (GF), 5. Clean Sheets
@@ -50,6 +52,7 @@ function pointsTableView() {
   qualificationNote.style.borderRadius = "4px";
   qualificationNote.style.fontSize = "0.85em";
   qualificationNote.style.display = "none";
+  qualificationNote.style.wordWrap = "break-word";
   qualificationNote.innerHTML = `
     <strong style="color: #1976d2">📋 Final Qualification:</strong>
     <div
@@ -58,10 +61,17 @@ function pointsTableView() {
     ></div>
   `;
 
+  // Wrap the table in a scrollable container
+  const tableWrapper = document.createElement("div");
+  tableWrapper.style.overflowX = "auto";
+  tableWrapper.style.width = "100%";
+  tableWrapper.style.WebkitOverflowScrolling = "touch"; // Smooth scrolling on iOS
+  tableWrapper.appendChild(table);
+
   // Use containerView to wrap the content
   const container = containerView({
     title: "Points Table",
-    content: [table, tiebreakerInfo, qualificationNote],
+    content: [tableWrapper, tiebreakerInfo, qualificationNote],
   });
 
   // Add the section class and id to the container

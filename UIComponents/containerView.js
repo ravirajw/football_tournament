@@ -16,6 +16,7 @@ function containerView({ title, content }) {
   container.style.boxSizing = "border-box";
   container.style.margin = "16px 0";
   container.style.boxShadow = "4px 4px 8px rgba(0, 0, 0, 0.1)";
+  container.style.overflow = "hidden"; // Prevent content from bleeding outside
 
   // Title
   const titleElem = document.createElement("div");

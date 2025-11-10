@@ -452,7 +452,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.7.1</span>
+          <span>v1.8.1</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -491,7 +491,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.7.1</span>
+          <span>v1.8.1</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -513,7 +513,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.7.1</span>
+          <span>v1.8.1</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -761,7 +761,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.7.1</span>
+          <span>v1.8.1</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -3098,7 +3098,9 @@
         const winner =
           finalMatch.score1 > finalMatch.score2
             ? finalMatch.team1
-            : finalMatch.team2;
+            : finalMatch.score2 > finalMatch.score1
+            ? finalMatch.team2
+            : null;
 
         // Get the main container
         const detailPage = document.getElementById("tournamentDetailPage");
@@ -3313,7 +3315,7 @@
         footer.style.cssText =
           "margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;";
         footer.innerHTML = `
-                <span>v1.7.1</span>
+                <span>v1.8.1</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             `;
         detailPage.appendChild(footer);
@@ -3930,6 +3932,7 @@
             const originalText = btn.innerHTML;
             btn.innerHTML = "✅ Copied!";
             btn.style.background = "#128C7E";
+
             setTimeout(() => {
               btn.innerHTML = originalText;
               btn.style.background = "#25D366";
@@ -4150,7 +4153,9 @@
           const topGoals = topScorersArr[0].goals;
           const topScorers = topScorersArr.filter((p) => p.goals === topGoals);
 
-          message += `⚽ *TOP SCORER${topScorers.length > 1 ? "S" : ""}*\n`;
+          message += `⚽ *TOP SCORER${
+            topScorers.length > 1 ? "S" : ""
+          }*\n`;
           topScorers.forEach((p) => {
             message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.goals} goal${
               p.goals > 1 ? "s" : ""
@@ -4169,7 +4174,9 @@
             (p) => p.assists === topAssistCount
           );
 
-          message += `🎯 *TOP ASSIST${topAssisters.length > 1 ? "S" : ""}*\n`;
+          message += `🎯 *TOP ASSIST${
+            topAssisters.length > 1 ? "S" : ""
+          }*\n`;
           topAssisters.forEach((p) => {
             message += `🥇 ${p.name} (${teams[p.team].name}) - ${
               p.assists
