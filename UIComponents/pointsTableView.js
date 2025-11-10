@@ -1,16 +1,25 @@
 // UIComponents/pointsTableView.js
-// Modular Points Table View component
+// Modular Points Table View component with proper overflow containment
 
 /**
  * Creates a points table view with table, tiebreaker info, and qualification note
- * Uses containerView for consistent styling
+ * Uses containerView for consistent styling with proper overflow handling
  * @returns {HTMLElement}
  */
 function pointsTableView() {
+  // Create a wrapper div for the table with horizontal scroll
+  const tableScrollWrapper = document.createElement("div");
+  tableScrollWrapper.style.width = "100%";
+  tableScrollWrapper.style.overflowX = "auto";
+  tableScrollWrapper.style.overflowY = "hidden";
+  tableScrollWrapper.style.WebkitOverflowScrolling = "touch";
+  tableScrollWrapper.style.boxSizing = "border-box";
+
   // Create the table element
   const table = document.createElement("table");
   table.className = "points-table";
-  table.style.minWidth = "600px"; // Ensure table has minimum width to trigger scroll on mobile
+  table.style.minWidth = "500px";
+  table.style.margin = "0";
   table.innerHTML = `
     <thead>
       <tr>
@@ -30,16 +39,23 @@ function pointsTableView() {
     <tbody id="tableBody"></tbody>
   `;
 
+  tableScrollWrapper.appendChild(table);
+
   // Create tiebreaker info
   const tiebreakerInfo = document.createElement("div");
   tiebreakerInfo.style.marginTop = "16px";
   tiebreakerInfo.style.fontSize = "0.85em";
   tiebreakerInfo.style.color = "#666";
   tiebreakerInfo.style.wordWrap = "break-word";
+  tiebreakerInfo.style.width = "100%";
+  tiebreakerInfo.style.boxSizing = "border-box";
   tiebreakerInfo.innerHTML = `
-    <strong>* Tiebreaker Order:</strong> 1. Points, 2. Goal Difference
-    (GD), 3. Head-to-Head (H2H), 4. Goals Scored (GF), 5. Clean Sheets
-    (CS)
+    <strong>* Tiebreaker Order:</strong><br><br>
+    1. Points<br>
+    2. Goal Difference (GD)<br>
+    3. Head-to-Head (H2H)<br>
+    4. Goals Scored (GF)<br>
+    5. Clean Sheets (CS)
   `;
 
   // Create qualification note
@@ -53,6 +69,8 @@ function pointsTableView() {
   qualificationNote.style.fontSize = "0.85em";
   qualificationNote.style.display = "none";
   qualificationNote.style.wordWrap = "break-word";
+  qualificationNote.style.width = "100%";
+  qualificationNote.style.boxSizing = "border-box";
   qualificationNote.innerHTML = `
     <strong style="color: #1976d2">📋 Final Qualification:</strong>
     <div
@@ -61,22 +79,20 @@ function pointsTableView() {
     ></div>
   `;
 
-  // Wrap the table in a scrollable container
-  const tableWrapper = document.createElement("div");
-  tableWrapper.style.overflowX = "auto";
-  tableWrapper.style.width = "100%";
-  tableWrapper.style.WebkitOverflowScrolling = "touch"; // Smooth scrolling on iOS
-  tableWrapper.appendChild(table);
-
   // Use containerView to wrap the content
   const container = containerView({
     title: "Points Table",
-    content: [tableWrapper, tiebreakerInfo, qualificationNote],
+    content: [tableScrollWrapper, tiebreakerInfo, qualificationNote],
   });
 
   // Add the section class and id to the container
   container.className = "section";
   container.id = "tableSection";
+
+  // Ensure the container itself has proper overflow
+  container.style.overflow = "hidden";
+  container.style.width = "100%";
+  container.style.boxSizing = "border-box";
 
   return container;
 }

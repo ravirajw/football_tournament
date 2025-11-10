@@ -452,7 +452,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.8.3</span>
+          <span>v1.8.6</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -491,7 +491,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.8.3</span>
+          <span>v1.8.6</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -513,7 +513,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.8.3</span>
+          <span>v1.8.6</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -561,7 +561,7 @@
         </div>
 
         <!-- Points Table Section -->
-        <!-- <div id="pointsTableContainer"></div>
+        <div id="pointsTableContainer"></div>
         <script>
           window.addEventListener("DOMContentLoaded", function () {
             const pointsTableContainer = document.getElementById(
@@ -569,19 +569,6 @@
             );
             if (pointsTableContainer) {
               pointsTableContainer.appendChild(pointsTableView());
-            }
-          });
-        </script> -->
-
-        <!-- Points Table Section 2 (New) -->
-        <div id="pointsTableContainer2"></div>
-        <script>
-          window.addEventListener("DOMContentLoaded", function () {
-            const pointsTableContainer2 = document.getElementById(
-              "pointsTableContainer2"
-            );
-            if (pointsTableContainer2) {
-              pointsTableContainer2.appendChild(pointsTableView2());
             }
           });
         </script>
@@ -774,7 +761,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.8.3</span>
+          <span>v1.8.6</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -845,7 +832,6 @@
     <script src="UIComponents/teamCardView.js"></script>
     <script src="UIComponents/teamSetupView.js"></script>
     <script src="UIComponents/pointsTableView.js"></script>
-    <script src="UIComponents/pointsTableView2.js"></script>
 
     <!-- Firebase Configuration (update with your credentials) -->
     <script src="js/firebase-config.js"></script>
@@ -2720,7 +2706,6 @@
 
       function updateTable() {
         const tbody = document.getElementById("tableBody");
-        const tbody2 = document.getElementById("tableBody2");
         const sorted = Object.entries(standings)
           .map(([key, val]) => ({
             key,
@@ -2761,9 +2746,6 @@
 
         if (tbody) {
           tbody.innerHTML = tableHTML;
-        }
-        if (tbody2) {
-          tbody2.innerHTML = tableHTML;
         }
       }
 
@@ -2977,22 +2959,14 @@
         }
 
         const noteDiv = document.getElementById("qualificationNote");
-        const noteDiv2 = document.getElementById("qualificationNote2");
         const detailsDiv = document.getElementById("qualificationDetails");
-        const detailsDiv2 = document.getElementById("qualificationDetails2");
 
         if (detailsDiv) {
           detailsDiv.innerHTML = explanation;
         }
-        if (detailsDiv2) {
-          detailsDiv2.innerHTML = explanation;
-        }
 
         if (noteDiv) {
           noteDiv.style.display = "block";
-        }
-        if (noteDiv2) {
-          noteDiv2.style.display = "block";
         }
       }
 
@@ -3094,8 +3068,12 @@
         if (tiebreakerTeams && tiebreakerTeams.length === 3) {
           const noteDiv = document.getElementById("qualificationNote");
           const detailsDiv = document.getElementById("qualificationDetails");
-          detailsDiv.innerHTML = `<strong style="color: ${teams[team1].color}">${teams[team1].name}</strong> and <strong style="color: ${teams[team2].color}">${teams[team2].name}</strong> qualified for the final.<br><br><strong>Reason:</strong> Three-way tie with all metrics equal. Selected by management decision.`;
-          noteDiv.style.display = "block";
+          if (detailsDiv) {
+            detailsDiv.innerHTML = `<strong style="color: ${teams[team1].color}">${teams[team1].name}</strong> and <strong style="color: ${teams[team2].color}">${teams[team2].name}</strong> qualified for the final.<br><br><strong>Reason:</strong> Three-way tie with all metrics equal. Selected by management decision.`;
+          }
+          if (noteDiv) {
+            noteDiv.style.display = "block";
+          }
         }
       }
 
@@ -3191,37 +3169,7 @@
         detailPage.appendChild(topLeaderboardSection);
 
         // 5. POINTS TABLE
-        const tableSection = document.createElement("div");
-        tableSection.className = "section";
-        tableSection.id = "tableSection";
-        tableSection.innerHTML = `
-                <h2>Points Table</h2>
-                <table class="points-table">
-                    <thead>
-                        <tr>
-                            <th>Pos</th>
-                            <th>Team</th>
-                            <th>P</th>
-                            <th>W</th>
-                            <th>D</th>
-                            <th>L</th>
-                            <th>GF</th>
-                            <th>GA</th>
-                            <th>GD</th>
-                            <th>CS</th>
-                            <th>Pts</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-                <div style="margin-top: 10px; font-size: 0.85em; color: #666;">
-                    <strong>* Tiebreaker Order:</strong> 1. Points, 2. Goal Difference (GD), 3. Head-to-Head (H2H), 4. Goals Scored (GF), 5. Clean Sheets (CS)
-                </div>
-                <div id="qualificationNote" style="margin-top: 15px; padding: 15px; background: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 5px; font-size: 0.9em; display: none;">
-                    <strong style="color: #1976D2;">📋 Final Qualification:</strong>
-                    <div id="qualificationDetails" style="margin-top: 8px; color: #555;"></div>
-                </div>
-            `;
+        const tableSection = window.pointsTableView();
         detailPage.appendChild(tableSection);
         updateTable(); // Re-populate the table
 
@@ -3351,7 +3299,7 @@
         footer.style.cssText =
           "margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;";
         footer.innerHTML = `
-                <span>v1.8.3</span>
+                <span>v1.8.6</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             `;
         detailPage.appendChild(footer);
