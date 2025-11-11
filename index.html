@@ -452,7 +452,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.8.6</span>
+          <span>v2.1.6</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -491,7 +491,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.8.6</span>
+          <span>v2.1.6</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -513,7 +513,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.8.6</span>
+          <span>v2.1.6</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -537,21 +537,8 @@
         <!-- WATCH LIVE Section (dynamically populated, visible to all) -->
         <div id="watchLiveMessageContainer"></div>
 
-        <!-- WhatsApp Message Section (admin only) -->
-        <div class="whatsapp-message-box hidden" id="whatsappMessageBox">
-          <h3>
-            <span style="font-size: 1.5em">📱</span>
-            WhatsApp Message - Share Tournament Info
-          </h3>
-          <div class="message-content" id="messageContent"></div>
-          <button
-            id="copyMessageBtn"
-            class="copy-btn"
-            onclick="copyWhatsAppMessage()"
-          >
-            📋 Copy Message
-          </button>
-        </div>
+        <!-- Tournament Info Message Section (visible to admin only) -->
+        <div id="newWhatsappMessageContainer"></div>
 
         <!-- Matches Section -->
         <div class="section" id="matchesSection">
@@ -715,25 +702,6 @@
         <!-- Winner Section (dynamically populated) -->
         <div id="winnerSection"></div>
 
-        <!-- Tournament Summary Section -->
-        <div
-          class="section"
-          id="tournamentSummarySection"
-          style="display: none"
-        >
-          <h2>Tournament Summary</h2>
-          <div class="whatsapp-message-box">
-            <h3>
-              <span style="font-size: 1.5em">📱</span>
-              WhatsApp Summary - Share Tournament Results
-            </h3>
-            <div class="message-content" id="summaryMessageContent"></div>
-            <button class="copy-btn" onclick="copySummaryMessage()">
-              📋 Copy Summary
-            </button>
-          </div>
-        </div>
-
         <!-- Delete Tournament Button (admin only) -->
         <div
           id="deleteTournamentSection"
@@ -761,7 +729,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v1.8.6</span>
+          <span>v2.1.6</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -832,6 +800,7 @@
     <script src="UIComponents/teamCardView.js"></script>
     <script src="UIComponents/teamSetupView.js"></script>
     <script src="UIComponents/pointsTableView.js"></script>
+    <script src="UIComponents/whatsappMessageView.js"></script>
 
     <!-- Firebase Configuration (update with your credentials) -->
     <script src="js/firebase-config.js"></script>
@@ -1134,8 +1103,6 @@
           Utils.safeSetStyle("adminControls", "display", "none");
           Utils.safeSetStyle("adminStatus", "display", "block");
           // Show admin-only sections
-          const whatsappBox = Utils.safeGetElement("whatsappMessageBox");
-          if (whatsappBox) whatsappBox.classList.remove("hidden");
           const deleteSection = Utils.safeGetElement("deleteTournamentSection");
           if (deleteSection) {
             deleteSection.style.display = "block";
@@ -1145,17 +1112,26 @@
               deleteBtn.onclick = () => deleteTournament(currentTournamentId);
             }
           }
+          const newWhatsappContainer = Utils.safeGetElement(
+            "newWhatsappMessageContainer"
+          );
+          if (newWhatsappContainer)
+            newWhatsappContainer.style.display = "block";
         } else {
           Utils.safeSetStyle("adminControls", "display", "block");
           Utils.safeSetStyle("adminStatus", "display", "none");
           // Hide admin-only sections
-          const whatsappBox = Utils.safeGetElement("whatsappMessageBox");
-          if (whatsappBox) whatsappBox.classList.add("hidden");
           const deleteSection = document.getElementById(
             "deleteTournamentSection"
           );
           if (deleteSection) {
             deleteSection.style.display = "none";
+          }
+          const newWhatsappContainer = document.getElementById(
+            "newWhatsappMessageContainer"
+          );
+          if (newWhatsappContainer) {
+            newWhatsappContainer.style.display = "none";
           }
         }
 
@@ -1163,8 +1139,8 @@
         // Show WATCH LIVE message
         showWatchLiveMessage();
 
-        // Generate WhatsApp message for admins
-        generateWhatsAppMessage();
+        // Populate the new WhatsApp message view (visible to admin only)
+        populateNewWhatsAppMessageView();
 
         console.log("Rendering tournament data...");
         // Render all the tournament data
@@ -1219,67 +1195,25 @@
         }
 
         const shareLink = getTournamentShareLink(currentTournamentId);
-        const watchLiveDiv = Utils.safeGetElement("watchLiveMessage");
-        if (watchLiveDiv) {
-          watchLiveDiv.style.display = "block";
-          Utils.safeSetText("shareLink", shareLink);
-        } else {
-          // Create the watch live message with WhatsApp-style UI (left-aligned)
-          const watchLiveHTML = `
-                    <div id="watchLiveMessage" style="background: #e7f3e7; border: 2px solid #28a745; border-radius: 10px; padding: 20px; margin: 20px 0;">
-                        <h3 style="color: #28a745; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5em;">📺</span>
-                            WATCH LIVE
-                        </h3>
-                        <p style="margin: 5px 0 10px 0; color: #666;">Share this link to let others watch the tournament:</p>
-                        <div style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; border: 1px solid #ddd; word-break: break-all; margin-bottom: 10px; text-align: left; display: block;">
-                            <span id="shareLink" style="display: block; text-align: left;">${shareLink}</span>
-                        </div>
-                        <button id="copyLinkBtn" onclick="copyShareLink()" class="copy-btn">
-                            📋 Copy Link
-                        </button>
-                    </div>
-                `;
-          const watchLiveContainer = document.getElementById(
-            "watchLiveMessageContainer"
-          );
-          if (watchLiveContainer) {
-            watchLiveContainer.innerHTML = watchLiveHTML;
-          }
-        }
-      }
+        const watchLiveContainer = document.getElementById(
+          "watchLiveMessageContainer"
+        );
 
-      function copyShareLink() {
-        const shareLink = document.getElementById("shareLink").textContent;
-        const btn = document.getElementById("copyLinkBtn");
-        const originalText = btn.innerHTML;
+        if (!watchLiveContainer || !window.whatsappMessageView) return;
 
-        navigator.clipboard
-          .writeText(shareLink)
-          .then(() => {
-            btn.innerHTML = "✅ Copied!";
-            btn.style.background = "#128C7E";
-            setTimeout(() => {
-              btn.innerHTML = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          })
-          .catch(() => {
-            // Fallback for browsers that don't support clipboard API
-            const textArea = document.createElement("textarea");
-            textArea.value = shareLink;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
+        // Clear existing content
+        watchLiveContainer.innerHTML = "";
 
-            btn.innerHTML = "✅ Copied!";
-            btn.style.background = "#128C7E";
-            setTimeout(() => {
-              btn.innerHTML = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          });
+        // Use the whatsappMessageView component
+        const viewElement = window.whatsappMessageView({
+          icon: "📺",
+          title: "Watch Live",
+          subtitle: "Share this link to let others watch the tournament:",
+          message: shareLink,
+          buttonTitle: "📋 Copy Link",
+        });
+
+        watchLiveContainer.appendChild(viewElement);
       }
 
       // Initialize tournaments on page load
@@ -1682,7 +1616,7 @@
         // Show WATCH LIVE message
         showWatchLiveMessage();
 
-        generateWhatsAppMessage();
+        populateNewWhatsAppMessageView();
         renderMatches();
         updateTable();
         updateLeaderboard();
@@ -1713,11 +1647,6 @@
           Utils.safeSetStyle("adminStatus", "display", "block");
 
           // Show admin-only sections (check if they exist)
-          const whatsappBox = document.getElementById("whatsappMessageBox");
-          if (whatsappBox) {
-            whatsappBox.classList.remove("hidden");
-          }
-
           const deleteSection = document.getElementById(
             "deleteTournamentSection"
           );
@@ -1729,25 +1658,22 @@
             }
           }
 
+          const newWhatsappContainer = document.getElementById(
+            "newWhatsappMessageContainer"
+          );
+          if (newWhatsappContainer) {
+            newWhatsappContainer.style.display = "block";
+          }
+
           // If tournament is complete, show tournament summary section
           if (isTournamentComplete()) {
-            const tournamentSummarySection = document.getElementById(
-              "tournamentSummarySection"
-            );
-            if (tournamentSummarySection) {
-              tournamentSummarySection.style.display = "block";
-              generateTournamentSummary();
-            } else {
-              // Tournament is complete but section doesn't exist
-              // Need to reorganize the page with admin privileges
-              pageReorganized = false;
-              reorganizePageForCompletedTournament();
-            }
+            // Tournament is complete, reorganize the page with admin privileges
+            pageReorganized = false;
+            reorganizePageForCompletedTournament();
           }
 
           // Show admin-only elements
           showWatchLiveMessage();
-          generateWhatsAppMessage();
 
           // Re-render matches to show admin controls
           renderMatches();
@@ -1797,22 +1723,16 @@
         }
 
         // Hide admin-only sections
-        const whatsappBox = document.getElementById("whatsappMessageBox");
-        if (whatsappBox) {
-          whatsappBox.classList.add("hidden");
-          whatsappBox.style.display = "none";
-        }
-
         const deleteSection = Utils.safeGetElement("deleteTournamentSection");
         if (deleteSection) {
           deleteSection.style.display = "none";
         }
 
-        const tournamentSummarySection = Utils.safeGetElement(
-          "tournamentSummarySection"
+        const newWhatsappContainer = document.getElementById(
+          "newWhatsappMessageContainer"
         );
-        if (tournamentSummarySection) {
-          tournamentSummarySection.style.display = "none";
+        if (newWhatsappContainer) {
+          newWhatsappContainer.style.display = "none";
         }
 
         Utils.safeSetStyle("adminStatus", "display", "none");
@@ -3237,47 +3157,33 @@
 
         // 8. TOURNAMENT SUMMARY (admin only)
         if (isAdmin) {
-          const tournamentSummarySection = document.createElement("div");
-          tournamentSummarySection.className = "section";
-          tournamentSummarySection.id = "tournamentSummarySection";
-          tournamentSummarySection.innerHTML = `
-                    <h2>Tournament Summary</h2>
-                    <div class="whatsapp-message-box">
-                        <h3>
-                            <span style="font-size: 1.5em;">📱</span>
-                            WhatsApp Summary - Share Tournament Results
-                        </h3>
-                        <div class="message-content" id="summaryMessageContent"></div>
-                        <button class="copy-btn" onclick="copySummaryMessage()">
-                            📋 Copy Summary
-                        </button>
-                    </div>
-                `;
-          detailPage.appendChild(tournamentSummarySection);
-          generateTournamentSummary();
+          // Generate summary message
+          const summaryMessage = generateTournamentSummaryMessage();
+
+          // Use whatsappMessageView component directly (no extra wrapper)
+          const viewElement = window.whatsappMessageView({
+            icon: "📱",
+            title: "Share Tournament Summary on Social Media",
+            message: summaryMessage,
+            buttonTitle: "📋 Copy Summary",
+          });
+
+          detailPage.appendChild(viewElement);
         }
 
         // 9. TOURNAMENT LINK
-        const tournamentLinkContainer = document.createElement("div");
-        tournamentLinkContainer.id = "tournamentLinkContainer";
-        tournamentLinkContainer.className = "section";
         const shareLink = getTournamentShareLink(currentTournamentId);
-        tournamentLinkContainer.innerHTML = `
-                <div style="background: #e7f3e7; border: 2px solid #28a745; border-radius: 10px; padding: 20px;">
-                    <h3 style="color: #28a745; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 1.5em;">🔗</span>
-                        TOURNAMENT LINK
-                    </h3>
-                    <p style="margin: 5px 0 10px 0; color: #666;">Share this link to view the tournament results:</p>
-                    <div style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; border: 1px solid #ddd; word-break: break-all; margin-bottom: 10px; text-align: left; display: block;">
-                        <span id="shareLinkCompleted" style="display: block; text-align: left;">${shareLink}</span>
-                    </div>
-                    <button id="copyLinkBtnCompleted" onclick="copyShareLinkCompleted()" class="copy-btn">
-                        📋 Copy Link
-                    </button>
-                </div>
-            `;
-        detailPage.appendChild(tournamentLinkContainer);
+
+        // Use whatsappMessageView component directly (no extra wrapper)
+        const linkViewElement = window.whatsappMessageView({
+          icon: "🔗",
+          title: "Tournament Link",
+          subtitle: "Share this link to view the tournament results:",
+          message: shareLink,
+          buttonTitle: "📋 Copy Link",
+        });
+
+        detailPage.appendChild(linkViewElement);
 
         // 10. DELETE TOURNAMENT (admin only)
         if (isAdmin) {
@@ -3299,7 +3205,7 @@
         footer.style.cssText =
           "margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;";
         footer.innerHTML = `
-                <span>v1.8.6</span>
+                <span>v2.1.6</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             `;
         detailPage.appendChild(footer);
@@ -3819,143 +3725,11 @@
         };
       }
 
-      function renderTournamentLinkSection() {
-        // Create or get the tournament link container
-        let tournamentLinkContainer = document.getElementById(
-          "tournamentLinkContainer"
-        );
-        if (!tournamentLinkContainer) {
-          tournamentLinkContainer = document.createElement("div");
-          tournamentLinkContainer.id = "tournamentLinkContainer";
-          tournamentLinkContainer.className = "section";
-        }
-
-        const shareLink = getTournamentShareLink(currentTournamentId);
-
-        const linkHTML = `
-                <div style="background: #e7f3e7; border: 2px solid #28a745; border-radius: 10px; padding: 20px;">
-                    <h3 style="color: #28a745; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 1.5em;">🔗</span>
-                        TOURNAMENT LINK
-                    </h3>
-                    <p style="margin: 5px 0 10px 0; color: #666;">Share this link to view the tournament results:</p>
-                    <div style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; border: 1px solid #ddd; word-break: break-all; margin-bottom: 10px; text-align: left; display: block;">
-                        <span id="shareLinkCompleted" style="display: block; text-align: left;">${shareLink}</span>
-                    </div>
-                    <button id="copyLinkBtnCompleted" onclick="copyShareLinkCompleted()" class="copy-btn">
-                        📋 Copy Link
-                    </button>
-                </div>
-            `;
-
-        tournamentLinkContainer.innerHTML = linkHTML;
-        return tournamentLinkContainer;
-      }
-
-      function copyShareLinkCompleted() {
-        const shareLink =
-          document.getElementById("shareLinkCompleted").textContent;
-        const btn = document.getElementById("copyLinkBtnCompleted");
-        const originalText = btn.innerHTML;
-
-        navigator.clipboard
-          .writeText(shareLink)
-          .then(() => {
-            btn.innerHTML = "✅ Copied!";
-            btn.style.background = "#128C7E";
-            setTimeout(() => {
-              btn.innerHTML = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          })
-          .catch(() => {
-            // Fallback
-            const textArea = document.createElement("textarea");
-            textArea.value = shareLink;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
-
-            btn.innerHTML = "✅ Copied!";
-            btn.style.background = "#128C7E";
-            setTimeout(() => {
-              btn.innerHTML = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          });
-      }
-
-      function generateTournamentSummary() {
-        const summaryContent = document.getElementById("summaryMessageContent");
-        if (!summaryContent) return;
-        // Use the pure function from js/tournamentSummary.js
-        const message = window.generateTournamentSummaryMessage({
-          matches,
-          teams,
-          standings,
-          playerStats,
-          keeperStats,
-          tournamentDate,
-          currentTournamentId,
-          getTournamentShareLink,
-          generateLeaderboardStats,
-        });
-        summaryContent.textContent = message;
-      }
-
-      function copySummaryMessage() {
-        const content = document.getElementById(
-          "summaryMessageContent"
-        ).textContent;
-
-        navigator.clipboard
-          .writeText(content)
-          .then(() => {
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "✅ Copied!";
-            btn.style.background = "#128C7E";
-
-            setTimeout(() => {
-              btn.innerHTML = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          })
-          .catch(() => {
-            // Fallback
-            const textArea = document.createElement("textarea");
-            textArea.value = content;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
-
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "✅ Copied!";
-            btn.style.background = "#128C7E";
-            setTimeout(() => {
-              btn.innerHTML = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          });
-      }
-
-      function generateWhatsAppMessage() {
-        // Only show WhatsApp message for admins
-        const whatsappBox = document.getElementById("whatsappMessageBox");
-        if (!whatsappBox) return; // Element doesn't exist yet
-
-        if (!isAdmin) {
-          whatsappBox.classList.add("hidden");
-          return;
-        }
-
-        // Show the WhatsApp message box
-        whatsappBox.classList.remove("hidden");
-        whatsappBox.style.display = "block";
-
+      /**
+       * Generate tournament information message
+       * @returns {string} Formatted tournament message
+       */
+      function generateTournamentInfoMessage() {
         let currentUrl = window.location.href;
 
         // Handle special cases for the URL
@@ -4031,46 +3805,36 @@
         message += `━━━━━━━━━━━━━━━━━\n\n`;
         message += `Let's go! 🎉⚽🔥`;
 
-        Utils.safeSetText("messageContent", message);
+        return message;
       }
 
-      function copyWhatsAppMessage() {
-        const messageContent = Utils.safeGetElement("messageContent");
-        const btn = Utils.safeGetElement("copyMessageBtn");
-        if (!messageContent || !btn) return;
+      function populateNewWhatsAppMessageView() {
+        const container = document.getElementById(
+          "newWhatsappMessageContainer"
+        );
 
-        const originalText = btn.textContent;
+        // Guard clause
+        if (!container || !window.whatsappMessageView) return;
 
-        navigator.clipboard
-          .writeText(messageContent.textContent)
-          .then(() => {
-            btn.textContent = "✅ Copied!";
-            btn.style.background = "#128C7E";
+        // Clear existing content
+        container.innerHTML = "";
 
-            setTimeout(() => {
-              btn.textContent = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          })
-          .catch((err) => {
-            // Fallback for browsers that don't support clipboard API
-            const textArea = document.createElement("textarea");
-            textArea.value = messageContent;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
+        const message = generateTournamentInfoMessage();
 
-            btn.textContent = "✅ Copied!";
-            btn.style.background = "#128C7E";
-            setTimeout(() => {
-              btn.textContent = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          });
+        const viewElement = window.whatsappMessageView({
+          icon: "📱",
+          title: "Share Tournament Info on Social Media",
+          message: message,
+          buttonTitle: "📋 Copy Message",
+        });
+        container.appendChild(viewElement);
       }
 
-      function generateTournamentSummary() {
+      /**
+       * Generate tournament summary message
+       * @returns {string} Formatted tournament summary message
+       */
+      function generateTournamentSummaryMessage() {
         let message = `🏆 *TOURNAMENT RESULTS* 🏆\n\n`;
 
         message += `📅 *Date:* ${tournamentDate}\n\n`;
@@ -4288,34 +4052,34 @@
         message += `Thanks for participating! 🎉⚽\n`;
         message += `See you next time! 👋`;
 
-        const summaryElement = document.getElementById("summaryMessageContent");
-        if (summaryElement) {
-          summaryElement.textContent = message;
-        }
+        return message;
       }
 
-      function copySummaryMessage() {
-        const messageContent = document.getElementById(
-          "summaryMessageContent"
-        ).textContent;
+      /**
+       * Render tournament summary in the tournamentSummarySection
+       * Uses whatsappMessageView component directly (no extra wrapper)
+       */
+      function renderTournamentSummary() {
+        const tournamentSummarySection = document.getElementById(
+          "tournamentSummarySection"
+        );
+        if (!tournamentSummarySection || !window.whatsappMessageView) return;
 
-        navigator.clipboard
-          .writeText(messageContent)
-          .then(() => {
-            const btns = document.querySelectorAll(".copy-btn");
-            const btn = btns[btns.length - 1];
-            const originalText = btn.textContent;
-            btn.textContent = "✅ Copied!";
-            btn.style.background = "#128C7E";
+        // Clear existing content
+        tournamentSummarySection.innerHTML = "";
 
-            setTimeout(() => {
-              btn.textContent = originalText;
-              btn.style.background = "#25D366";
-            }, 2000);
-          })
-          .catch((err) => {
-            alert("Failed to copy. Please select and copy manually.");
-          });
+        // Generate summary message
+        const summaryMessage = generateTournamentSummaryMessage();
+
+        // Use whatsappMessageView component directly
+        const viewElement = window.whatsappMessageView({
+          icon: "📱",
+          title: "Share Tournament Summary on Social Media",
+          message: summaryMessage,
+          buttonTitle: "📋 Copy Summary",
+        });
+
+        tournamentSummarySection.appendChild(viewElement);
       }
 
       function updateLeaderboard() {
@@ -4498,7 +4262,7 @@
                         </div>
                     `;
 
-            generateTournamentSummary();
+            renderTournamentSummary();
             const tournamentSummarySection = document.getElementById(
               "tournamentSummarySection"
             );
