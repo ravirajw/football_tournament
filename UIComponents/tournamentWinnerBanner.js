@@ -13,86 +13,59 @@ function createTournamentWinnerBanner({ winnerName, winnerColor }) {
   banner.id = "winnerSection";
   banner.style.cssText = `
     background: linear-gradient(135deg, #f4d03f 0%, #f39c12 100%);
-    color: #333;
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 30px rgba(244, 208, 63, 0.4);
+    padding: 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
   `;
 
-  banner.innerHTML = `
-    <style>
-      .winner-banner-title {
-        font-size: 1.5em;
-        font-weight: bold;
-        margin: 0 0 15px 0;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      
-      .winner-banner-team {
-        font-size: 2em;
-        margin: 20px 0;
-        font-weight: bold;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        color: ${winnerColor};
-        word-break: break-word;
-      }
-      
-      .winner-banner-congrats {
-        font-size: 1.1em;
-        opacity: 0.9;
-      }
+  // Use headerView for title with trophy icons and styling
+  const titleContainer = headerView({
+    leftEmoji: "🏆",
+    title: "TOURNAMENT WINNER",
+    rightEmoji: "🏆",
+    textColor: "#333",
+    textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
+    letterSpacing: "1px",
+  });
 
-      /* Mobile responsive adjustments */
-      @media (max-width: 480px) {
-        .winner-banner-title {
-          font-size: 1.2em;
-          gap: 5px;
-        }
-        
-        .winner-banner-team {
-          font-size: 1.8em;
-          margin: 15px 0;
-        }
-        
-        .winner-banner-congrats {
-          font-size: 1em;
-        }
-      }
+  // Get team color emoji based on team name
+  const getTeamEmoji = (name) => {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes("red")) return "🔴";
+    if (lowerName.includes("white")) return "⚪";
+    if (lowerName.includes("black")) return "⚫";
+    return "⚽";
+  };
+  const teamEmoji = getTeamEmoji(winnerName);
 
-      @media (max-width: 360px) {
-        .winner-banner-title {
-          font-size: 1em;
-        }
-        
-        .winner-banner-team {
-          font-size: 1.5em;
-        }
-        
-        .winner-banner-congrats {
-          font-size: 0.9em;
-        }
-      }
-    </style>
-    
-    <div class="winner-banner-title">
-      <span>🏆</span>
-      <span>TOURNAMENT WINNER</span>
-      <span>🏆</span>
-    </div>
-    <div class="winner-banner-team">
-      ${winnerName.toUpperCase()} TEAM
-    </div>
-    <div class="winner-banner-congrats">
-      🎉 Congratulations! 🎉
-    </div>
-  `;
+  // Use headerView for team name with team color and styling
+  const teamNameContainer = headerView({
+    leftEmoji: teamEmoji,
+    title: `${winnerName.toUpperCase()} TEAM`,
+    rightEmoji: teamEmoji,
+    fontSize: 32,
+    textColor: winnerColor,
+    textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
+    letterSpacing: "2px",
+  });
+  teamNameContainer.style.margin = "32px 0 32px 0";
+
+  // Use headerView for congratulations with styling
+  const congratsContainer = headerView({
+    leftEmoji: "🎉",
+    title: "Congratulations!",
+    rightEmoji: "🎉",
+    textColor: "#333",
+    textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
+    fontStyle: "italic",
+    opacity: "0.9",
+  });
+
+  // Append elements to banner
+  banner.appendChild(titleContainer);
+  banner.appendChild(teamNameContainer);
+  banner.appendChild(congratsContainer);
 
   return banner;
 }

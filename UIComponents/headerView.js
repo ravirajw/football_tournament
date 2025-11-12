@@ -3,14 +3,41 @@
 
 /**
  * Creates a header view element with horizontal layout:
- * [⚽] [Football Tournament Manager] [⚽]
- * Title is centered, supports up to 2 lines.
+ * [leftEmoji] [title] [rightEmoji]
+ * Title is centered, wraps to multiple lines as needed.
+ * Prioritizes text wrapping over font size reduction.
  * Vertical alignment is center.
  *
- * Usage: headerView()
+ * @param {Object} options - Configuration options
+ * @param {string} options.leftEmoji - Left emoji icon (default: "⚽")
+ * @param {string} options.title - Header title text (default: "Football Tournament Manager")
+ * @param {string} options.rightEmoji - Right emoji icon (default: "⚽")
+ * @param {number} options.fontSize - Base font size in pixels (default: 24)
+ * @param {string} options.textColor - Text color (default: "#000")
+ * @param {string} options.textShadow - Text shadow CSS value (default: "none")
+ * @param {string} options.letterSpacing - Letter spacing (default: "normal")
+ * @param {string} options.fontWeight - Font weight (default: "bold")
+ * @param {string} options.fontStyle - Font style (default: "normal")
+ * @param {string} options.opacity - Opacity (default: "1")
+ *
+ * Usage: headerView({ leftEmoji: "🏆", title: "Winner", rightEmoji: "🏆", fontSize: 24, textColor: "#ff0000" })
  * Returns: HTMLElement
  */
-function headerView() {
+function headerView(options = {}) {
+  // Destructure options with defaults
+  const {
+    leftEmoji = "⚽",
+    title: titleText = "Football Tournament Manager",
+    rightEmoji = "⚽",
+    fontSize: baseFontSize = 24,
+    textColor = "#000",
+    textShadow = "none",
+    letterSpacing = "normal",
+    fontWeight = "bold",
+    fontStyle = "normal",
+    opacity = "1",
+  } = options;
+
   const container = document.createElement("div");
   container.style.display = "flex";
   container.style.flexDirection = "row";
@@ -24,44 +51,45 @@ function headerView() {
   const leftSpacer = document.createElement("div");
   leftSpacer.style.flex = "1";
 
-  // Left football icon
+  // Left icon
   const leftIcon = document.createElement("span");
-  leftIcon.textContent = "⚽";
-  leftIcon.style.fontSize = "1.5rem";
+  leftIcon.textContent = leftEmoji;
+  leftIcon.style.fontSize = baseFontSize + "px";
   leftIcon.style.marginRight = "16px";
 
   // Title
   const title = document.createElement("div");
-  title.textContent = "Football Tournament Manager";
-  title.style.fontWeight = "bold";
-  title.style.fontSize = "1.5rem";
+  title.textContent = titleText;
+  title.style.fontWeight = fontWeight;
+  title.style.fontSize = baseFontSize + "px";
   title.style.textAlign = "center";
   title.style.lineHeight = "1.3";
   title.style.wordBreak = "keep-all"; // Prevent word breaking
   title.style.overflowWrap = "normal"; // Don't break words
-  title.style.whiteSpace = "normal"; // Allow wrapping
-  title.style.maxWidth = "fit-content";
+  title.style.whiteSpace = "normal"; // Allow wrapping at whitespace only
+  title.style.maxWidth = "100%"; // Allow full width
+  title.style.color = textColor;
+  title.style.textShadow = textShadow;
+  title.style.letterSpacing = letterSpacing;
+  title.style.fontStyle = fontStyle;
+  title.style.opacity = opacity;
 
-  // Support up to 3 lines
-  title.style.display = "-webkit-box";
-  title.style.webkitLineClamp = "3";
-  title.style.webkitBoxOrient = "vertical";
-  title.style.overflow = "hidden";
-
-  // Dynamic font sizing for mobile
+  // Dynamic font sizing for mobile - prioritize wrapping over shrinking
   const adjustFontSize = () => {
     const containerWidth = container.offsetWidth;
     const availableWidth = containerWidth - 150; // Account for icons, margins, and spacers
 
     // Reset to base font size
-    let fontSize = 24; // 1.5rem = 24px
+    let fontSize = baseFontSize;
     title.style.fontSize = fontSize + "px";
 
-    // Check if text height exceeds 3 lines, then reduce font
-    const maxHeight = fontSize * 1.3 * 3; // lineHeight * 3 lines
+    // Set max width to allow wrapping first
+    title.style.maxWidth = availableWidth + "px";
 
-    while (title.scrollHeight > maxHeight && fontSize > 12) {
-      // 50% of 24px = 12px
+    // Only reduce font size if text still doesn't fit after wrapping
+    const minFontSize = baseFontSize * 0.5; // Minimum 50% of base font size
+
+    while (title.scrollWidth > availableWidth && fontSize > minFontSize) {
       fontSize -= 1;
       title.style.fontSize = fontSize + "px";
     }
@@ -70,10 +98,10 @@ function headerView() {
   // Adjust font size after element is added to DOM
   setTimeout(adjustFontSize, 10);
 
-  // Right football icon
+  // Right icon
   const rightIcon = document.createElement("span");
-  rightIcon.textContent = "⚽";
-  rightIcon.style.fontSize = "1.5rem";
+  rightIcon.textContent = rightEmoji;
+  rightIcon.style.fontSize = baseFontSize + "px";
   rightIcon.style.marginLeft = "16px";
 
   // Right spacer for centering
@@ -92,14 +120,16 @@ function headerView() {
     const availableWidth = containerWidth - 150; // Account for icons, margins, and spacers
 
     // Reset to base font size
-    let fontSize = 24; // 1.5rem = 24px
+    let fontSize = baseFontSize;
     title.style.fontSize = fontSize + "px";
 
-    // Check if text height exceeds 3 lines, then reduce font
-    const maxHeight = fontSize * 1.3 * 3; // lineHeight * 3 lines
+    // Set max width to allow wrapping first
+    title.style.maxWidth = availableWidth + "px";
 
-    while (title.scrollHeight > maxHeight && fontSize > 12) {
-      // 50% of 24px = 12px
+    // Only reduce font size if text still doesn't fit after wrapping
+    const minFontSize = baseFontSize * 0.5; // Minimum 50% of base font size
+
+    while (title.scrollWidth > availableWidth && fontSize > minFontSize) {
       fontSize -= 1;
       title.style.fontSize = fontSize + "px";
     }
