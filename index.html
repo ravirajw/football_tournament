@@ -170,8 +170,70 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 10px;
       }
 
+      .match-header-title {
+        font-weight: bold;
+      }
+
+      .match-header-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* New scoreboard layout */
+      .match-scoreboard {
+        margin: 15px 0;
+      }
+
+      .team-score-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .team-score-row:last-child {
+        border-bottom: none;
+      }
+
+      .team-info {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+      }
+
+      .team-name {
+        font-size: 1.3em;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .team-keeper {
+        font-size: 0.9em;
+        color: #666;
+        padding-left: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .team-score {
+        font-size: 2em;
+        font-weight: bold;
+        color: #667eea;
+        min-width: 50px;
+        text-align: right;
+      }
+
+      /* Legacy styles for backward compatibility */
       .match-teams {
         display: flex;
         justify-content: space-around;
@@ -187,9 +249,16 @@
       }
 
       .match-controls {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 10px;
-        flex-wrap: wrap;
+        margin-top: 15px;
+      }
+
+      @media (max-width: 480px) {
+        .match-controls {
+          grid-template-columns: 1fr 1fr;
+        }
       }
 
       .goal-section {
@@ -452,7 +521,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v2.1.6</span>
+          <span>v2.2.3</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -491,7 +560,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v2.1.6</span>
+          <span>v2.2.3</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -513,7 +582,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v2.1.6</span>
+          <span>v2.2.3</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -729,7 +798,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v2.1.6</span>
+          <span>v2.2.3</span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -737,9 +806,14 @@
 
     <!-- Create Admin Password Modal -->
     <script src="UIComponents/adminPasswordModal.js"></script>
+
+    <!-- Create Keeper Selection Modal -->
+    <script src="UIComponents/keeperModal.js"></script>
+
     <script>
       window.addEventListener("DOMContentLoaded", function () {
         createAdminPasswordModal();
+        createKeeperModal();
       });
     </script>
 
@@ -750,21 +824,6 @@
         createAdminLoginModal();
       });
     </script>
-
-    <!-- Goalkeeper Selection Modal -->
-    <div class="modal" id="keeperModal">
-      <div class="modal-content">
-        <h2 style="margin-bottom: 20px; color: #667eea">Select Goalkeepers</h2>
-        <div id="keeperSelectionContent"></div>
-        <button
-          class="btn-success"
-          style="width: 100%; margin-top: 20px"
-          onclick="confirmKeepers()"
-        >
-          Start Match
-        </button>
-      </div>
-    </div>
 
     <!-- Event Recording Modal -->
     <div class="modal" id="eventModal">
@@ -1763,21 +1822,25 @@
         const content = document.getElementById("keeperSelectionContent");
 
         content.innerHTML = `
-                <div class="keeper-selection">
-                    <h3 style="color: ${teams[match.team1].color}">${
+                <div style="margin-bottom: 16px">
+                    <h3 style="color: ${
+                      teams[match.team1].color
+                    }; margin: 0 0 8px 0; font-weight: bold;">${
           teams[match.team1].name
         } Goalkeeper</h3>
-                    <select id="keeper1Select" style="width: 100%; padding: 10px; font-size: 16px;">
+                    <select id="keeper1Select" style="width: 100%; padding: 12px; padding-right: 40px; border: 2px solid #667eea; border-radius: 4px; font-size: 16px;">
                         ${teams[match.team1].players
                           .map((p) => `<option value="${p}">${p}</option>`)
                           .join("")}
                     </select>
                 </div>
-                <div class="keeper-selection">
-                    <h3 style="color: ${teams[match.team2].color}">${
+                <div style="margin-bottom: 16px">
+                    <h3 style="color: ${
+                      teams[match.team2].color
+                    }; margin: 0 0 8px 0; font-weight: bold;">${
           teams[match.team2].name
         } Goalkeeper</h3>
-                    <select id="keeper2Select" style="width: 100%; padding: 10px; font-size: 16px;">
+                    <select id="keeper2Select" style="width: 100%; padding: 12px; padding-right: 40px; border: 2px solid #667eea; border-radius: 4px; font-size: 16px;">
                         ${teams[match.team2].players
                           .map((p) => `<option value="${p}">${p}</option>`)
                           .join("")}
@@ -1806,6 +1869,17 @@
        * @param {boolean} options.isFinal - Is this the final match (default: auto-detect)
        * @returns {string} Match card HTML
        */
+
+      // Helper function to get team color emoji
+      function getTeamColorEmoji(teamKey) {
+        const emojiMap = {
+          red: "🔴",
+          black: "⚫",
+          white: "⚪",
+        };
+        return emojiMap[teamKey] || "⚽";
+      }
+
       function createMatchCardHTML(match, options = {}) {
         const { showControls = isAdmin, isFinal = match.round === "final" } =
           options;
@@ -1852,48 +1926,60 @@
                   isFinal ? "final-match" : ""
                 }" id="match-${match.id}">
                     <div class="match-header">
-                        <strong>${
+                        <span class="match-header-title">${
                           isFinal
                             ? "🏆 FINAL"
                             : `Round ${match.round} - Match ${
                                 (match.id % 3) + 1
                               }`
-                        }</strong>
-                        <span style="color: ${statusColor}">
-                            ${match.status.toUpperCase()}
+                        }</span>
+                        <span class="match-header-status">
+                            <span style="color: ${statusColor}; font-weight: bold;">
+                                ${match.status.toUpperCase()}
+                            </span>
+                            <span id="timer-${
+                              match.id
+                            }" style="color: #667eea; font-weight: bold;">${timerDisplay}</span>
                         </span>
                     </div>
 
-                    ${
-                      match.keeper1 && match.keeper2
-                        ? `
-                        <div class="keeper-info">
-                            <div>🧤 ${teams[match.team1].name}: ${
-                            match.keeper1
-                          }</div>
-                            <div>🧤 ${teams[match.team2].name}: ${
-                            match.keeper2
-                          }</div>
-                        </div>
-                    `
-                        : ""
-                    }
-                    
-                    <div class="match-teams">
-                        <span style="color: ${teams[match.team1].color}">${
+                    <div class="match-scoreboard">
+                        <div class="team-score-row">
+                            <div class="team-info">
+                                <div class="team-name" style="color: ${
+                                  teams[match.team1].color
+                                }">
+                                    ${getTeamColorEmoji(match.team1)} ${
           teams[match.team1].name
-        }</span>
-                        <span class="score">${match.score1} - ${
-          match.score2
-        }</span>
-                        <span style="color: ${teams[match.team2].color}">${
+        }
+                                </div>
+                                ${
+                                  match.keeper1
+                                    ? `<div class="team-keeper">🧤 ${match.keeper1}</div>`
+                                    : ""
+                                }
+                            </div>
+                            <div class="team-score">${match.score1}</div>
+                        </div>
+                        
+                        <div class="team-score-row">
+                            <div class="team-info">
+                                <div class="team-name" style="color: ${
+                                  teams[match.team2].color
+                                }">
+                                    ${getTeamColorEmoji(match.team2)} ${
           teams[match.team2].name
-        }</span>
+        }
+                                </div>
+                                ${
+                                  match.keeper2
+                                    ? `<div class="team-keeper">🧤 ${match.keeper2}</div>`
+                                    : ""
+                                }
+                            </div>
+                            <div class="team-score">${match.score2}</div>
+                        </div>
                     </div>
-
-                    <div class="timer" id="timer-${
-                      match.id
-                    }">${timerDisplay}</div>
 
                     ${
                       showControls
@@ -1910,29 +1996,17 @@
                             ${
                               match.status === "live"
                                 ? `
-                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0;">
-                                    🎲 Random
-                                </button>
+                                <button class="btn-warning" onclick="showGoalDialog(${match.id})">Add Goal</button>
+                                <button class="btn-danger" onclick="showOwnGoalDialog(${match.id})">Add Own Goal</button>
+                                <button class="btn-primary" onclick="showSaveDialog(${match.id})">Add Save</button>
                                 <button class="btn-danger" onclick="endMatch(${match.id})">End Match</button>
+                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0; grid-column: 1 / -1;">
+                                    🎲 Random Events
+                                </button>
                             `
                                 : ""
                             }
                         </div>
-
-                        ${
-                          match.status === "live"
-                            ? `
-                            <div class="goal-section">
-                                <h4>Record Events</h4>
-                                <div style="margin: 10px 0; display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <button class="btn-warning" onclick="showGoalDialog(${match.id})">Add Goal</button>
-                                    <button class="btn-danger" onclick="showOwnGoalDialog(${match.id})">Add Own Goal</button>
-                                    <button class="btn-primary" onclick="showSaveDialog(${match.id})">Add Save</button>
-                                </div>
-                            </div>
-                        `
-                            : ""
-                        }
                     `
                         : ""
                     }
@@ -3205,7 +3279,7 @@
         footer.style.cssText =
           "margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;";
         footer.innerHTML = `
-                <span>v2.1.6</span>
+                <span>v2.2.3</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             `;
         detailPage.appendChild(footer);
