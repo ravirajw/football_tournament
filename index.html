@@ -63,9 +63,11 @@
       .team-red {
         background: linear-gradient(135deg, #d32f2f, #c62828);
       }
+
       .team-black {
         background: linear-gradient(135deg, #424242, #212121);
       }
+
       .team-white {
         background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
         color: #333;
@@ -465,6 +467,7 @@
       }
     </style>
   </head>
+
   <body>
     <div class="container">
       <div id="header-container"></div>
@@ -474,6 +477,7 @@
           0% {
             transform: rotate(0deg);
           }
+
           100% {
             transform: rotate(360deg);
           }
@@ -521,7 +525,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v2.2.9</span>
+          <span class="app-version"></span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -560,7 +564,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v2.2.9</span>
+          <span class="app-version"></span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -582,7 +586,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v2.2.9</span>
+          <span class="app-version"></span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -610,11 +614,16 @@
         <div id="newWhatsappMessageContainer"></div>
 
         <!-- Matches Section -->
-        <div class="section" id="matchesSection">
-          <h2>Matches</h2>
-
-          <div class="matches-grid" id="matchesGrid"></div>
-        </div>
+        <div id="matchesContainer"></div>
+        <script>
+          window.addEventListener("DOMContentLoaded", function () {
+            const matchesContainer =
+              document.getElementById("matchesContainer");
+            if (matchesContainer) {
+              matchesContainer.appendChild(matchesView());
+            }
+          });
+        </script>
 
         <!-- Points Table Section -->
         <div id="pointsTableContainer"></div>
@@ -798,7 +807,7 @@
             border-top: 1px solid #eee;
           "
         >
-          <span>v2.2.9</span>
+          <span class="app-version"></span>
           <span>UTC: <span class="deviceUTC">--</span></span>
         </div>
       </div>
@@ -862,6 +871,7 @@
     <script src="UIComponents/teamCardView.js"></script>
     <script src="UIComponents/teamSetupView.js"></script>
     <script src="UIComponents/pointsTableView.js"></script>
+    <script src="UIComponents/matches.js"></script>
     <script src="UIComponents/whatsappMessageView.js"></script>
 
     <!-- Firebase Configuration (update with your credentials) -->
@@ -3271,7 +3281,7 @@
         footer.style.cssText =
           "margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;";
         footer.innerHTML = `
-                <span>v2.2.9</span>
+                <span class="app-version">${CONFIG.APP_VERSION}</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>
             `;
         detailPage.appendChild(footer);
@@ -4309,6 +4319,14 @@
         if (newTeamSetupContainer) {
           newTeamSetupContainer.appendChild(teamSetupView());
         }
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const versionSpans = document.querySelectorAll('.app-version');
+        versionSpans.forEach(span => {
+          span.textContent = CONFIG.APP_VERSION;
+        });
       });
     </script>
   </body>
