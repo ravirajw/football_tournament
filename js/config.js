@@ -11,7 +11,7 @@
 const CONFIG = {
     // Storage
     STORAGE_KEY: 'footballTournaments',
-    APP_VERSION: 'v2.3.0',
+    APP_VERSION: 'v2.3.2',
     
     // Match Timing
     MATCH_DURATION_SECONDS: 600,    // 10 minutes (can be adjusted for different tournament formats)

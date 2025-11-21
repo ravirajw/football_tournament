@@ -882,9 +882,9 @@
 
     <script>
       let teams = {
-        red: { name: "Red", players: [], color: "#d32f2f" },
-        black: { name: "Black", players: [], color: "#424242" },
-        white: { name: "White", players: [], color: "#9e9e9e" },
+        red: { name: "Red", players: [], color: "#d32f2f", emoji: "🔴" },
+        black: { name: "Black", players: [], color: "#424242", emoji: "⚫" },
+        white: { name: "White", players: [], color: "#9e9e9e", emoji: "⚪" },
       };
 
       let standings = {
@@ -3809,7 +3809,7 @@
             "https://claude.ai - (Open this artifact and copy the URL from your browser)";
         }
 
-        let message = `🏆 *FOOTBALL TOURNAMENT* 🏆\n\n`;
+        let message = `🏆 *WEEKLY TOURNAMENT*\n\n`;
 
         message += `📅 *Date:* ${tournamentDate}\n\n`;
 
@@ -3817,23 +3817,13 @@
 
         message += `👥 *TEAMS & PLAYERS*\n\n`;
 
-        message += `🔴 *RED TEAM*\n`;
-        teams.red.players.forEach((p, i) => {
-          message += `   ${i + 1}. ${p}\n`;
+        Object.values(teams).forEach((team) => {
+          message += `${team.emoji} *${team.name.toUpperCase()} TEAM* ${team.emoji}\n`;
+          team.players.forEach((p, i) => {
+            message += `   ${i + 1}. ${p}\n`;
+          });
+          message += `\n`;
         });
-        message += `\n`;
-
-        message += `⚫ *BLACK TEAM*\n`;
-        teams.black.players.forEach((p, i) => {
-          message += `   ${i + 1}. ${p}\n`;
-        });
-        message += `\n`;
-
-        message += `⚪ *WHITE TEAM*\n`;
-        teams.white.players.forEach((p, i) => {
-          message += `   ${i + 1}. ${p}\n`;
-        });
-        message += `\n`;
 
         message += `━━━━━━━━━━━━━━━━━\n\n`;
         message += `📋 *MATCH SCHEDULE*\n\n`;
@@ -3846,16 +3836,15 @@
           );
           roundMatches.forEach((m, idx) => {
             const matchNum = (round - 1) * 3 + idx + 1;
-            message += `   Match ${matchNum}: ${teams[m.team1].name} vs ${
-              teams[m.team2].name
-            }\n`;
+            
+            message += `M${matchNum}: ${teams[m.team1].emoji} ${teams[m.team1].name} vs ${teams[m.team2].emoji} ${teams[m.team2].name}\n`;
           });
           message += `\n`;
         }
 
         message += `*FINAL*\n`;
-        message += `   Match 10: P1 vs P2\n`;
-        message += `   (Top 2 teams qualify)\n\n`;
+        message += `M10: P1 vs P2\n`;
+        message += `(Top 2 teams qualify)\n\n`;
 
         message += `━━━━━━━━━━━━━━━━━\n\n`;
         message += `⚽ *TOURNAMENT FORMAT*\n`;
