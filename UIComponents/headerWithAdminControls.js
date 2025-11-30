@@ -7,13 +7,21 @@ function headerWithAdminControls() {
   headerDiv.style.justifyContent = "space-between";
   headerDiv.style.alignItems = "center";
   headerDiv.style.marginBottom = "16px";
+  headerDiv.style.flexWrap = "wrap";
+  headerDiv.style.gap = "8px";
 
-  // Date section
+  // Date and Status section
   const dateDiv = document.createElement("div");
   dateDiv.style.fontSize = "0.8em";
   dateDiv.style.fontWeight = "normal";
   dateDiv.style.color = "#666";
-  dateDiv.innerHTML = '📅 <strong id="dateText"></strong>';
+  dateDiv.style.display = "flex";
+  dateDiv.style.flexDirection = "column";
+  dateDiv.style.gap = "4px";
+  dateDiv.innerHTML = `
+    <div>📅 <strong id="dateText"></strong></div>
+    <div id="tournamentStatus" style="font-weight: 600;"></div>
+  `;
   headerDiv.appendChild(dateDiv);
 
   // Admin login button

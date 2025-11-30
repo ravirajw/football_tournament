@@ -780,16 +780,45 @@
         <!-- Winner Section (dynamically populated) -->
         <div id="winnerSection"></div>
 
-        <!-- Delete Tournament Button (admin only) -->
+        <!-- Admin Actions (End Tournament & Delete Tournament) -->
         <div
-          id="deleteTournamentSection"
+          id="adminActionsSection"
           class="section"
           style="display: none; text-align: center; margin-top: 30px"
         >
           <button
+            id="endTournamentBtn"
+            style="
+              min-width: 250px;
+              padding: 12px 30px;
+              font-size: 16px;
+              margin: 0 8px 15px 8px;
+              background: #ff9800;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: 600;
+            "
+            onclick="endTournament()"
+          >
+            🏁 End Tournament
+          </button>
+          <button
             id="deleteTournamentBtn"
-            class="btn-danger"
-            style="padding: 12px 30px; font-size: 16px"
+            style="
+              min-width: 250px;
+              padding: 12px 30px;
+              font-size: 16px;
+              margin: 0 8px 15px 8px;
+              background: #c62828;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: 600;
+            "
+            onclick="deleteTournament(currentTournamentId)"
           >
             🗑️ Delete Tournament
           </button>
@@ -968,12 +997,10 @@
       }
 
       // Tournament management functions
-      function generateTournamentId() {
+      function generateTournamentId(isTest = false) {
+        const prefix = isTest ? "test_tournament_" : "tournament_";
         return (
-          "tournament_" +
-          Date.now() +
-          "_" +
-          Math.random().toString(36).substr(2, 9)
+          prefix + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
         );
       }
 
@@ -1173,19 +1200,25 @@
         // Update UI - tournament sections are already visible in the page
         console.log("Updating tournament UI...");
         Utils.safeSetText("dateText", tournamentDate);
+        updateTournamentStatus();
 
         // Show admin status or login button based on session
         if (isAdmin) {
           Utils.safeSetStyle("adminControls", "display", "none");
           Utils.safeSetStyle("adminStatus", "display", "block");
           // Show admin-only sections
-          const deleteSection = Utils.safeGetElement("deleteTournamentSection");
-          if (deleteSection) {
-            deleteSection.style.display = "block";
+          const adminSection = Utils.safeGetElement("adminActionsSection");
+          if (adminSection) {
+            adminSection.style.display = "block";
             // Set up delete button with correct tournament ID
             const deleteBtn = Utils.safeGetElement("deleteTournamentBtn");
             if (deleteBtn) {
               deleteBtn.onclick = () => deleteTournament(currentTournamentId);
+            }
+            // Hide End Tournament button if tournament has already ended or completed
+            const endBtn = Utils.safeGetElement("endTournamentBtn");
+            if (endBtn && (isTournamentEnded() || isTournamentComplete())) {
+              endBtn.style.display = "none";
             }
           }
           const newWhatsappContainer = Utils.safeGetElement(
@@ -1197,11 +1230,9 @@
           Utils.safeSetStyle("adminControls", "display", "block");
           Utils.safeSetStyle("adminStatus", "display", "none");
           // Hide admin-only sections
-          const deleteSection = document.getElementById(
-            "deleteTournamentSection"
-          );
-          if (deleteSection) {
-            deleteSection.style.display = "none";
+          const adminSection = document.getElementById("adminActionsSection");
+          if (adminSection) {
+            adminSection.style.display = "none";
           }
           const newWhatsappContainer = document.getElementById(
             "newWhatsappMessageContainer"
@@ -1233,6 +1264,118 @@
         restartLiveMatchTimers();
 
         console.log("Tournament loaded successfully!");
+      }
+
+      /**
+       * End the tournament manually
+       * - Ends any ongoing matches
+       * - Marks pending league matches as ABANDONED
+       * - Marks final match as ABANDONED if it exists and is pending
+       * - Declares league winner as tournament winner if all league matches are done
+       * - No winner if any league match is pending
+       */
+      function endTournament() {
+        if (!checkAdmin()) return;
+
+        if (
+          !confirm(
+            "Are you sure you want to end this tournament?\n\nThis will:\n- End any ongoing matches\n- Mark pending matches as ABANDONED\n- Determine the tournament winner based on completed matches"
+          )
+        ) {
+          return;
+        }
+
+        console.log("🏁 Ending tournament...");
+
+        // 1. End any ongoing matches
+        const ongoingMatches = matches.filter((m) => m.status === "live");
+        ongoingMatches.forEach((match) => {
+          console.log(
+            `⏹️ Ending ongoing match: ${teams[match.team1].name} vs ${
+              teams[match.team2].name
+            }`
+          );
+          endMatch(match.id);
+        });
+
+        // 2. Mark pending league matches as ABANDONED
+        const pendingLeagueMatches = matches.filter(
+          (m) => m.round !== "final" && m.status === "pending"
+        );
+        pendingLeagueMatches.forEach((match) => {
+          console.log(
+            `❌ Abandoning league match: ${teams[match.team1].name} vs ${
+              teams[match.team2].name
+            }`
+          );
+          match.status = "ABANDONED";
+        });
+
+        // 3. Check if final match exists and mark as ABANDONED if pending
+        const finalMatch = matches.find((m) => m.round === "final");
+        if (finalMatch && finalMatch.status === "pending") {
+          console.log("❌ Abandoning final match");
+          finalMatch.status = "ABANDONED";
+        }
+
+        // 4. Determine tournament winner
+        const leagueMatches = matches.filter((m) => m.round !== "final");
+        const allLeagueMatchesCompleted = leagueMatches.every(
+          (m) => m.status === "completed"
+        );
+
+        if (!allLeagueMatchesCompleted) {
+          console.log(
+            "⚠️ No tournament winner - Not all league matches were completed"
+          );
+          alert(
+            "Tournament ended.\n\n⚠️ No tournament winner declared because some league matches were not completed."
+          );
+        } else {
+          // All league matches are done, determine winner from standings
+          if (!finalMatch || finalMatch.status !== "completed") {
+            // Final was not played or not completed, league winner is tournament winner
+            const sortedTeams = Object.keys(standings).sort((a, b) => {
+              if (standings[b].points !== standings[a].points) {
+                return standings[b].points - standings[a].points;
+              }
+              const gdA = standings[a].gf - standings[a].ga;
+              const gdB = standings[b].gf - standings[b].ga;
+              if (gdB !== gdA) return gdB - gdA;
+              return standings[b].gf - standings[a].gf;
+            });
+
+            const winnerTeamKey = sortedTeams[0];
+            const winnerTeam = teams[winnerTeamKey];
+
+            console.log(
+              `🏆 Tournament winner: ${winnerTeam.name} Team (League Winner)`
+            );
+            alert(
+              `Tournament ended.\n\n🏆 Tournament Winner: ${winnerTeam.name} Team\n(Winner of the league stage)`
+            );
+          } else {
+            // Final was completed
+            console.log("✅ Tournament ended with final match completed");
+            alert(
+              "Tournament ended.\n\n✅ Winner already determined from final match."
+            );
+          }
+        }
+
+        // Save changes
+        updateTournamentStorage();
+        renderMatches();
+        updateTable();
+        updateLeaderboard();
+
+        // Hide the End Tournament button
+        const endTournamentBtn = document.getElementById("endTournamentBtn");
+        if (endTournamentBtn) {
+          endTournamentBtn.style.display = "none";
+        }
+
+        console.log("✅ Tournament ended");
       }
 
       async function deleteTournament(tournamentId) {
@@ -1615,8 +1758,8 @@
         isAdmin = true;
         Utils.safeSetStyle("adminPasswordModal", "display", "none");
 
-        // Generate unique tournament ID
-        currentTournamentId = generateTournamentId();
+        // Generate unique tournament ID (with test prefix if test mode)
+        currentTournamentId = generateTournamentId(isTestMode);
 
         // Store admin session for this tournament
         sessionStorage.setItem(`admin_${currentTournamentId}`, "true");
@@ -1738,11 +1881,9 @@
           Utils.safeSetStyle("adminStatus", "display", "block");
 
           // Show admin-only sections (check if they exist)
-          const deleteSection = document.getElementById(
-            "deleteTournamentSection"
-          );
-          if (deleteSection) {
-            deleteSection.style.display = "block";
+          const adminSection = document.getElementById("adminActionsSection");
+          if (adminSection) {
+            adminSection.style.display = "block";
             const deleteBtn = document.getElementById("deleteTournamentBtn");
             if (deleteBtn) {
               deleteBtn.onclick = () => deleteTournament(currentTournamentId);
@@ -1814,9 +1955,9 @@
         }
 
         // Hide admin-only sections
-        const deleteSection = Utils.safeGetElement("deleteTournamentSection");
-        if (deleteSection) {
-          deleteSection.style.display = "none";
+        const adminSection = Utils.safeGetElement("adminActionsSection");
+        if (adminSection) {
+          adminSection.style.display = "none";
         }
 
         const newWhatsappContainer = document.getElementById(
@@ -1951,6 +2092,8 @@
             ? COLORS.STATUS_COMPLETED
             : match.status === "live"
             ? COLORS.STATUS_LIVE
+            : match.status === "ABANDONED"
+            ? "#999"
             : COLORS.STATUS_PENDING;
 
         return `
@@ -2014,7 +2157,7 @@
                     </div>
 
                     ${
-                      showControls
+                      showControls && match.status !== "ABANDONED"
                         ? `
                         <div class="match-controls">
                             ${
@@ -2097,6 +2240,9 @@
 
         // Check if tournament is complete and reorganize layout
         reorganizePageForCompletedTournament();
+
+        // Update tournament status
+        updateTournamentStatus();
       }
 
       function startMatch(matchId) {
@@ -2366,6 +2512,14 @@
 
         if (allComplete && !matches.some((m) => m.round === "final")) {
           createFinal();
+        }
+
+        // Hide End Tournament button if final match was just completed
+        if (match.round === "final") {
+          const endTournamentBtn = document.getElementById("endTournamentBtn");
+          if (endTournamentBtn) {
+            endTournamentBtn.style.display = "none";
+          }
         }
       }
 
@@ -2693,8 +2847,8 @@
       }
 
       function updateStandings(match) {
-        // Don't update standings for final matches
-        if (match.round === "final") {
+        // Don't update standings for final matches or abandoned matches
+        if (match.round === "final" || match.status === "ABANDONED") {
           return;
         }
 
@@ -3121,6 +3275,38 @@
         return finalMatch && finalMatch.status === "completed";
       }
 
+      function isTournamentEnded() {
+        // Tournament is considered "ended" if it has any ABANDONED matches
+        // This means the tournament was manually ended before completion
+        return matches.some((m) => m.status === "ABANDONED");
+      }
+
+      function updateTournamentStatus() {
+        const statusElement = document.getElementById("tournamentStatus");
+        if (!statusElement) return;
+
+        // Check if tournament has ended (has ABANDONED matches) or completed (final match done)
+        if (isTournamentEnded() || isTournamentComplete()) {
+          statusElement.innerHTML =
+            '✅ <span style="color: #4caf50;">Completed</span>';
+          return;
+        }
+
+        // Check if any match has started
+        const hasStartedMatch = matches.some(
+          (m) => m.status === "completed" || m.status === "live"
+        );
+        if (hasStartedMatch) {
+          statusElement.innerHTML =
+            '⚡ <span style="color: #ff9800;">In Progress...</span>';
+          return;
+        }
+
+        // Tournament not started yet
+        statusElement.innerHTML =
+          '⏳ <span style="color: #666;">Yet to begin...</span>';
+      }
+
       function reorganizePageForCompletedTournament() {
         if (!isTournamentComplete()) {
           pageReorganized = false; // Reset flag if tournament not complete
@@ -3280,19 +3466,31 @@
 
         detailPage.appendChild(linkViewElement);
 
-        // 10. DELETE TOURNAMENT (admin only)
+        // 10. END TOURNAMENT & DELETE TOURNAMENT (admin only)
         if (isAdmin) {
-          const deleteTournamentSection = document.createElement("div");
-          deleteTournamentSection.id = "deleteTournamentSection";
-          deleteTournamentSection.className = "section";
-          deleteTournamentSection.style.textAlign = "center";
-          deleteTournamentSection.style.marginTop = "30px";
-          deleteTournamentSection.innerHTML = `
-                    <button id="deleteTournamentBtn" class="btn-danger" style="padding: 12px 30px; font-size: 16px;" onclick="deleteTournament('${currentTournamentId}')">
+          const adminActionsSection = document.createElement("div");
+          adminActionsSection.id = "adminActionsSection";
+          adminActionsSection.className = "section";
+          adminActionsSection.style.textAlign = "center";
+          adminActionsSection.style.marginTop = "30px";
+
+          const tournamentEndedOrComplete =
+            isTournamentEnded() || isTournamentComplete();
+          const endButtonHtml = tournamentEndedOrComplete
+            ? ""
+            : `
+                    <button id="endTournamentBtn" style="min-width: 250px; padding: 12px 30px; font-size: 16px; margin: 0 8px 15px 8px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="endTournament()">
+                        🏁 End Tournament
+                    </button>
+          `;
+
+          adminActionsSection.innerHTML = `
+                    ${endButtonHtml}
+                    <button id="deleteTournamentBtn" style="min-width: 250px; padding: 12px 30px; font-size: 16px; margin: 0 8px 15px 8px; background: #c62828; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="deleteTournament('${currentTournamentId}')">
                         🗑️ Delete Tournament
                     </button>
                 `;
-          detailPage.appendChild(deleteTournamentSection);
+          detailPage.appendChild(adminActionsSection);
         }
 
         // Footer (version and UTC)
