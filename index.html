@@ -2203,7 +2203,7 @@
                                 <button class="btn-danger" onclick="showOwnGoalDialog(${match.id})">Add Own Goal</button>
                                 <button class="btn-primary" onclick="showSaveDialog(${match.id})">Add Save</button>
                                 <button class="btn-danger" onclick="endMatch(${match.id})">End Match</button>
-                                ${isTestMode ? `<button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0; grid-column: 1 / -1;">🎲 Random Events</button>` : ''}
+                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0; grid-column: 1 / -1;">🎲 Random Events</button>
                             `
                                 : ""
                             }
