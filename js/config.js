@@ -13,6 +13,7 @@ const CONFIG = {
     STORAGE_KEY: 'footballTournaments',
     APP_VERSION: 'v2.3.7',
     IS_TESTING: false,
+    SUPER_USER_CODES: ['SUPER1', 'GOAL2', 'KICK3', 'PASS4', 'WIN5'],
     
     // Match Timing
     MATCH_DURATION_SECONDS: 600,    // 10 minutes (can be adjusted for different tournament formats)

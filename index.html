@@ -927,6 +927,7 @@
       let isAdmin = false;
       let currentTournamentId = null;
       let allTournaments = {};
+      let isTestMode = false;
 
       // Global timer tracking
       let matchTimers = {}; // { matchId: { startTime: timestamp, interval: intervalId } }
@@ -1538,6 +1539,7 @@
       }
 
       function addTestPlayers() {
+        isTestMode = true;
         teams.red.players = ["Marcus", "Diego", "Andre", "Carlo", "Sergio"];
         teams.black.players = ["Kevin", "Raheem", "Jack", "Phil", "Kyle"];
         teams.white.players = ["Bruno", "Paul", "Harry", "Luke", "Aaron"];
@@ -1584,6 +1586,20 @@
       function setAdminPassword() {
         const password = Utils.safeGetValue("adminPasswordInput");
         const confirm = Utils.safeGetValue("adminPasswordConfirm");
+        const superUserCode = Utils.safeGetValue("superUserCodeInput");
+
+        // Check Super User Code if not in test mode
+        if (!isTestMode) {
+          if (!superUserCode) {
+            alert("Please enter a Super User Code to start a tournament");
+            return;
+          }
+
+          if (!CONFIG.SUPER_USER_CODES.includes(superUserCode)) {
+            alert("Invalid Super User Code");
+            return;
+          }
+        }
 
         if (!password || password.length < 4) {
           alert("Password must be at least 4 characters long");
@@ -3821,7 +3837,9 @@
         message += `👥 *TEAMS & PLAYERS*\n\n`;
 
         Object.values(teams).forEach((team) => {
-          message += `${team.emoji} *${team.name.toUpperCase()} TEAM* ${team.emoji}\n`;
+          message += `${team.emoji} *${team.name.toUpperCase()} TEAM* ${
+            team.emoji
+          }\n`;
           team.players.forEach((p, i) => {
             message += `   ${i + 1}. ${p}\n`;
           });
@@ -3839,8 +3857,10 @@
           );
           roundMatches.forEach((m, idx) => {
             const matchNum = (round - 1) * 3 + idx + 1;
-            
-            message += `M${matchNum}: ${teams[m.team1].emoji} ${teams[m.team1].name} vs ${teams[m.team2].emoji} ${teams[m.team2].name}\n`;
+
+            message += `M${matchNum}: ${teams[m.team1].emoji} ${
+              teams[m.team1].name
+            } vs ${teams[m.team2].emoji} ${teams[m.team2].name}\n`;
           });
           message += `\n`;
         }
@@ -4314,9 +4334,9 @@
       });
     </script>
     <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        const versionSpans = document.querySelectorAll('.app-version');
-        versionSpans.forEach(span => {
+      document.addEventListener("DOMContentLoaded", function () {
+        const versionSpans = document.querySelectorAll(".app-version");
+        versionSpans.forEach((span) => {
           span.textContent = CONFIG.APP_VERSION;
         });
       });
