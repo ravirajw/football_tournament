@@ -2057,6 +2057,9 @@
         const { showControls = isAdmin, isFinal = match.round === "final" } =
           options;
 
+        // Check if any match is currently live
+        const hasLiveMatch = matches.some((m) => m.status === "live");
+
         // Calculate timer display
         let timerDisplay = "10:00";
         if (
@@ -2161,7 +2164,7 @@
                         ? `
                         <div class="match-controls">
                             ${
-                              match.status === "pending"
+                              match.status === "pending" && !hasLiveMatch
                                 ? `
                                 <button class="btn-success" onclick="showKeeperModal(${match.id})" style="grid-column: 1 / -1;">Start</button>
                             `
