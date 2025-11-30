@@ -2485,6 +2485,112 @@
         endMatch(matchId);
       }
 
+      /**
+       * Sync tournament stats to player database
+       * Only runs if not in test mode and Firebase is available
+       */
+      async function syncPlayerDatabase() {
+        if (isTestMode) {
+          console.log("🧪 Test mode: Skipping player database sync");
+          return;
+        }
+
+        if (!useFirebase || !playerDatabaseService) {
+          console.log("⚠️ Firebase not available: Skipping player database sync");
+          return;
+        }
+
+        console.log("🔄 Syncing tournament stats to player database...");
+        
+        try {
+          // Get final match to determine winners
+          const finalMatch = matches.find(m => m.round === 'final');
+          let winnerTeam = null;
+          let runnerUpTeam = null;
+
+          if (finalMatch) {
+            if (finalMatch.score1 > finalMatch.score2) {
+              winnerTeam = finalMatch.team1;
+              runnerUpTeam = finalMatch.team2;
+            } else if (finalMatch.score2 > finalMatch.score1) {
+              winnerTeam = finalMatch.team2;
+              runnerUpTeam = finalMatch.team1;
+            }
+          }
+
+          // Process each player
+          for (const [playerId, stats] of Object.entries(playerStats)) {
+            const playerName = stats.name;
+            const teamKey = stats.team;
+
+            // Get or create player
+            const player = await playerDatabaseService.getOrCreatePlayer(playerName);
+            
+            if (!player) {
+              console.error(`❌ Failed to sync player: ${playerName}`);
+              continue;
+            }
+
+            // Calculate player's game results from league matches
+            const teamStandings = standings[teamKey] || {};
+            let gamesPlayed = teamStandings.played || 0;
+            let gamesWon = teamStandings.won || 0;
+            let gamesLost = teamStandings.lost || 0;
+            let gamesDrawn = teamStandings.drawn || 0;
+
+            // Check if player was in final and add final match to totals
+            let finalsPlayed = 0;
+            let finalsWon = 0;
+            let finalsLost = 0;
+
+            if (finalMatch && (teamKey === finalMatch.team1 || teamKey === finalMatch.team2)) {
+              finalsPlayed = 1;
+              gamesPlayed += 1; // Add final to total games
+              
+              if (teamKey === winnerTeam) {
+                finalsWon = 1;
+                gamesWon += 1; // Add final win to total wins
+              } else if (teamKey === runnerUpTeam) {
+                finalsLost = 1;
+                gamesLost += 1; // Add final loss to total losses
+              } else {
+                // Final was a draw
+                gamesDrawn += 1;
+              }
+            }
+
+            // Get keeper stats
+            const keeperData = keeperStats[playerId] || {};
+
+            // Prepare stats update
+            const statsUpdate = {
+              gamesPlayed: gamesPlayed,
+              gamesWon: gamesWon,
+              gamesLost: gamesLost,
+              gamesDrawn: gamesDrawn,
+              goals: stats.goals || 0,
+              assists: stats.assists || 0,
+              saves: keeperData.saves || 0,
+              cleanSheets: keeperData.cleanSheets || 0,
+              ownGoals: stats.ownGoals || 0,
+              finalsPlayed: finalsPlayed,
+              finalsWon: finalsWon,
+              finalsLost: finalsLost
+            };
+
+            // Update player stats
+            await playerDatabaseService.updatePlayerStats(player.id, statsUpdate, currentTournamentId);
+            console.log(`✅ Synced stats for ${playerName}`);
+          }
+          
+          console.log("🎉 Player database sync completed!");
+          alert("Tournament stats have been saved to player database!");
+          
+        } catch (error) {
+          console.error("❌ Error syncing player database:", error);
+        }
+      }
+
       function endMatch(matchId) {
         if (!checkAdmin()) return;
         const match = matches.find((m) => m.id === matchId);
