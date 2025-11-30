@@ -1182,6 +1182,16 @@
         adminPassword = tournament.adminPassword;
         playerStats = tournament.playerStats || {};
         keeperStats = tournament.keeperStats || {};
+        
+        // Load isTestMode from tournament data, or infer from tournament ID prefix
+        if (tournament.hasOwnProperty('isTestMode')) {
+          isTestMode = tournament.isTestMode;
+        } else {
+          // Fallback: Check if tournament ID starts with "test_tournament_"
+          isTestMode = tournamentId.startsWith('test_tournament_');
+        }
+        
+        console.log("Tournament isTestMode flag:", isTestMode, "(Tournament ID:", tournamentId, ")");
 
         // Check if admin session exists for this tournament
         const isAdminSession =
@@ -1831,6 +1841,7 @@
           playerStats: JSON.parse(JSON.stringify(playerStats)),
           keeperStats: JSON.parse(JSON.stringify(keeperStats)),
           created: new Date().toISOString(),
+          isTestMode: isTestMode,
         };
         console.log("Saving tournament to storage:", currentTournamentId);
         console.log("Tournament data:", allTournaments[currentTournamentId]);
@@ -2059,6 +2070,11 @@
 
         // Check if any match is currently live
         const hasLiveMatch = matches.some((m) => m.status === "live");
+        
+        // Debug: Log isTestMode value when rendering match cards
+        if (match.status === "live") {
+          console.log(`Rendering match ${match.id} - isTestMode: ${isTestMode}`);
+        }
 
         // Calculate timer display
         let timerDisplay = "10:00";
@@ -2178,9 +2194,7 @@
                                 <button class="btn-danger" onclick="showOwnGoalDialog(${match.id})">Add Own Goal</button>
                                 <button class="btn-primary" onclick="showSaveDialog(${match.id})">Add Save</button>
                                 <button class="btn-danger" onclick="endMatch(${match.id})">End Match</button>
-                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0; grid-column: 1 / -1;">
-                                    🎲 Random Events
-                                </button>
+                                ${isTestMode ? `<button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0; grid-column: 1 / -1;">🎲 Random Events</button>` : ''}
                             `
                                 : ""
                             }
