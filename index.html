@@ -912,6 +912,9 @@
     <!-- Firebase Storage Manager -->
     <script src="js/firebase-storage.js"></script>
 
+    <!-- Player Database Service -->
+    <script src="js/player-database.js"></script>
+
     <script>
       let teams = {
         red: { name: "Red", players: [], color: "#d32f2f", emoji: "🔴" },
@@ -969,6 +972,7 @@
       // Firebase integration
       let firebaseStorage = null;
       let useFirebase = false;
+      let playerDatabaseService = null;
 
       // Initialize Firebase Storage Manager
       function initializeFirebase() {
@@ -980,6 +984,8 @@
             firebaseStorage = new FirebaseStorageManager();
             if (firebaseStorage.initialize()) {
               useFirebase = true;
+              // Initialize Player Database Service
+              playerDatabaseService = new PlayerDatabaseService(firebaseStorage);
               console.log("✅ Using Firebase for storage");
               return true;
             }
@@ -1384,6 +1390,9 @@
         if (endTournamentBtn) {
           endTournamentBtn.style.display = "none";
         }
+
+        // Sync stats to player database
+        syncPlayerDatabase();
 
         console.log("✅ Tournament ended");
       }
@@ -2529,8 +2538,10 @@
 
         if (allComplete && !matches.some((m) => m.round === "final")) {
           createFinal();
+        } else if (allComplete && matches.some((m) => m.round === "final")) {
+          // Tournament is fully complete (including final)
+          syncPlayerDatabase();
         }
-
         // Hide End Tournament button if final match was just completed
         if (match.round === "final") {
           const endTournamentBtn = document.getElementById("endTournamentBtn");
