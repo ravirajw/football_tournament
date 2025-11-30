@@ -967,6 +967,9 @@
       // Flag to track if page has been reorganized for completed tournament
       let pageReorganized = false;
 
+      // Flag to track if player database sync is in progress
+      let isSyncInProgress = false;
+
       // Note: CONFIG and COLORS constants are loaded from js/config.js
 
       // Firebase integration
@@ -1521,7 +1524,14 @@
       }
 
       // Cleanup on page unload
-      window.addEventListener("beforeunload", function () {
+      window.addEventListener("beforeunload", function (e) {
+        // Warn user if player database sync is in progress
+        if (isSyncInProgress) {
+          e.preventDefault();
+          e.returnValue = 'Player stats are still being saved to the database. Please wait for the sync to complete before closing.';
+          return e.returnValue;
+        }
+
         stopRealTimeSync();
 
         // Stop Firebase listeners
@@ -2490,6 +2500,12 @@
        * Only runs if not in test mode and Firebase is available
        */
       async function syncPlayerDatabase() {
+        // Check if sync is already in progress
+        if (isSyncInProgress) {
+          console.log("⏳ Sync already in progress, skipping duplicate request...");
+          return;
+        }
+
         if (isTestMode) {
           console.log("🧪 Test mode: Skipping player database sync");
           return;
@@ -2500,6 +2516,8 @@
           return;
         }
 
+        // Set flag to prevent concurrent syncs
+        isSyncInProgress = true;
         console.log("🔄 Syncing tournament stats to player database...");
         
         try {
@@ -2584,10 +2602,12 @@
           }
           
           console.log("🎉 Player database sync completed!");
-          alert("Tournament stats have been saved to player database!");
           
         } catch (error) {
           console.error("❌ Error syncing player database:", error);
+        } finally {
+          // Always reset the flag, even if there was an error
+          isSyncInProgress = false;
         }
       }
 
