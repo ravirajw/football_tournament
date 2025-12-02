@@ -988,7 +988,9 @@
             if (firebaseStorage.initialize()) {
               useFirebase = true;
               // Initialize Player Database Service
-              playerDatabaseService = new PlayerDatabaseService(firebaseStorage);
+              playerDatabaseService = new PlayerDatabaseService(
+                firebaseStorage
+              );
               console.log("✅ Using Firebase for storage");
               return true;
             }
@@ -1191,16 +1193,22 @@
         adminPassword = tournament.adminPassword;
         playerStats = tournament.playerStats || {};
         keeperStats = tournament.keeperStats || {};
-        
+
         // Load isTestMode from tournament data, or infer from tournament ID prefix
-        if (tournament.hasOwnProperty('isTestMode')) {
+        if (tournament.hasOwnProperty("isTestMode")) {
           isTestMode = tournament.isTestMode;
         } else {
           // Fallback: Check if tournament ID starts with "test_tournament_"
-          isTestMode = tournamentId.startsWith('test_tournament_');
+          isTestMode = tournamentId.startsWith("test_tournament_");
         }
-        
-        console.log("Tournament isTestMode flag:", isTestMode, "(Tournament ID:", tournamentId, ")");
+
+        console.log(
+          "Tournament isTestMode flag:",
+          isTestMode,
+          "(Tournament ID:",
+          tournamentId,
+          ")"
+        );
 
         // Check if admin session exists for this tournament
         const isAdminSession =
@@ -1528,7 +1536,8 @@
         // Warn user if player database sync is in progress
         if (isSyncInProgress) {
           e.preventDefault();
-          e.returnValue = 'Player stats are still being saved to the database. Please wait for the sync to complete before closing.';
+          e.returnValue =
+            "Player stats are still being saved to the database. Please wait for the sync to complete before closing.";
           return e.returnValue;
         }
 
@@ -1802,7 +1811,21 @@
 
         matches = [];
 
+        // Kick-off distribution pattern to ensure each team gets equal chances
+        // Matches in each round: R vs B, R vs W, B vs W
+        // Pattern ensures each team gets 3 kick-offs across 9 matches
+        // Round 1: red (R vs B), white (R vs W), black (B vs W)
+        // Round 2: black (R vs B), red (R vs W), white (B vs W)
+        // Round 3: red (R vs B), white (R vs W), black (B vs W) - Repeats Round 1
+        const kickoffPattern = [
+          ["red", "white", "black"],    // Round 1: R vs B (red), R vs W (white), B vs W (black)
+          ["black", "red", "white"],    // Round 2: R vs B (black), R vs W (red), B vs W (white)
+          ["red", "white", "black"]     // Round 3: R vs B (red), R vs W (white), B vs W (black) - Same as Round 1
+        ];
+
         for (let round = 1; round <= 3; round++) {
+          const roundKickoffs = kickoffPattern[round - 1];
+
           matches.push({
             id: matches.length,
             round: round,
@@ -1816,6 +1839,7 @@
             goals: [],
             keeper1: null,
             keeper2: null,
+            kickoffTeam: roundKickoffs[0],
           });
 
           matches.push({
@@ -1831,6 +1855,7 @@
             goals: [],
             keeper1: null,
             keeper2: null,
+            kickoffTeam: roundKickoffs[1],
           });
 
           matches.push({
@@ -1846,6 +1871,7 @@
             goals: [],
             keeper1: null,
             keeper2: null,
+            kickoffTeam: roundKickoffs[2],
           });
         }
 
@@ -2089,10 +2115,12 @@
 
         // Check if any match is currently live
         const hasLiveMatch = matches.some((m) => m.status === "live");
-        
+
         // Debug: Log isTestMode value when rendering match cards
         if (match.status === "live") {
-          console.log(`Rendering match ${match.id} - isTestMode: ${isTestMode}`);
+          console.log(
+            `Rendering match ${match.id} - isTestMode: ${isTestMode}`
+          );
         }
 
         // Calculate timer display
@@ -2164,6 +2192,10 @@
                                 }">
                                     ${getTeamColorEmoji(match.team1)} ${
           teams[match.team1].name
+        }${
+          match.kickoffTeam === match.team1
+            ? ' <span style="font-size: 0.8em;" title="Has kick-off">👟⚽</span>'
+            : ""
         }
                                 </div>
                                 ${
@@ -2182,6 +2214,10 @@
                                 }">
                                     ${getTeamColorEmoji(match.team2)} ${
           teams[match.team2].name
+        }${
+          match.kickoffTeam === match.team2
+            ? ' <span style="font-size: 0.8em;" title="Has kick-off">👟⚽</span>'
+            : ""
         }
                                 </div>
                                 ${
@@ -2502,7 +2538,9 @@
       async function syncPlayerDatabase() {
         // Check if sync is already in progress
         if (isSyncInProgress) {
-          console.log("⏳ Sync already in progress, skipping duplicate request...");
+          console.log(
+            "⏳ Sync already in progress, skipping duplicate request..."
+          );
           return;
         }
 
@@ -2512,17 +2550,19 @@
         }
 
         if (!useFirebase || !playerDatabaseService) {
-          console.log("⚠️ Firebase not available: Skipping player database sync");
+          console.log(
+            "⚠️ Firebase not available: Skipping player database sync"
+          );
           return;
         }
 
         // Set flag to prevent concurrent syncs
         isSyncInProgress = true;
         console.log("🔄 Syncing tournament stats to player database...");
-        
+
         try {
           // Get final match to determine winners
-          const finalMatch = matches.find(m => m.round === 'final');
+          const finalMatch = matches.find((m) => m.round === "final");
           let winnerTeam = null;
           let runnerUpTeam = null;
 
@@ -2542,8 +2582,10 @@
             const teamKey = stats.team;
 
             // Get or create player
-            const player = await playerDatabaseService.getOrCreatePlayer(playerName);
-            
+            const player = await playerDatabaseService.getOrCreatePlayer(
+              playerName
+            );
+
             if (!player) {
               console.error(`❌ Failed to sync player: ${playerName}`);
               continue;
@@ -2561,10 +2603,13 @@
             let finalsWon = 0;
             let finalsLost = 0;
 
-            if (finalMatch && (teamKey === finalMatch.team1 || teamKey === finalMatch.team2)) {
+            if (
+              finalMatch &&
+              (teamKey === finalMatch.team1 || teamKey === finalMatch.team2)
+            ) {
               finalsPlayed = 1;
               gamesPlayed += 1; // Add final to total games
-              
+
               if (teamKey === winnerTeam) {
                 finalsWon = 1;
                 gamesWon += 1; // Add final win to total wins
@@ -2593,16 +2638,19 @@
               ownGoals: stats.ownGoals || 0,
               finalsPlayed: finalsPlayed,
               finalsWon: finalsWon,
-              finalsLost: finalsLost
+              finalsLost: finalsLost,
             };
 
             // Update player stats
-            await playerDatabaseService.updatePlayerStats(player.id, statsUpdate, currentTournamentId);
+            await playerDatabaseService.updatePlayerStats(
+              player.id,
+              statsUpdate,
+              currentTournamentId
+            );
             console.log(`✅ Synced stats for ${playerName}`);
           }
-          
+
           console.log("🎉 Player database sync completed!");
-          
         } catch (error) {
           console.error("❌ Error syncing player database:", error);
         } finally {
@@ -3378,6 +3426,38 @@
       }
 
       function proceedToFinal(team1, team2) {
+        // Determine which team gets the kick-off based on points table
+        // The team that finished on top gets the kick-off
+        const team1Points = standings[team1].points;
+        const team2Points = standings[team2].points;
+        
+        let kickoffTeam;
+        if (team1Points > team2Points) {
+          kickoffTeam = team1;
+        } else if (team2Points > team1Points) {
+          kickoffTeam = team2;
+        } else {
+          // If points are equal, check goal difference
+          const team1GD = standings[team1].gf - standings[team1].ga;
+          const team2GD = standings[team2].gf - standings[team2].ga;
+          
+          if (team1GD > team2GD) {
+            kickoffTeam = team1;
+          } else if (team2GD > team1GD) {
+            kickoffTeam = team2;
+          } else {
+            // If still tied, check goals scored
+            if (standings[team1].gf > standings[team2].gf) {
+              kickoffTeam = team1;
+            } else if (standings[team2].gf > standings[team1].gf) {
+              kickoffTeam = team2;
+            } else {
+              // If everything is equal, give it to team1 (first in alphabetical/default order)
+              kickoffTeam = team1;
+            }
+          }
+        }
+        
         matches.push({
           id: matches.length,
           round: "final",
@@ -3392,6 +3472,7 @@
           keeper1: null,
           keeper2: null,
           paused: false,
+          kickoffTeam: kickoffTeam,
         });
 
         // Save the final match to Firebase
