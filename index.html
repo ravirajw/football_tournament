@@ -1818,9 +1818,9 @@
         // Round 2: black (R vs B), red (R vs W), white (B vs W)
         // Round 3: red (R vs B), white (R vs W), black (B vs W) - Repeats Round 1
         const kickoffPattern = [
-          ["red", "white", "black"],    // Round 1: R vs B (red), R vs W (white), B vs W (black)
-          ["black", "red", "white"],    // Round 2: R vs B (black), R vs W (red), B vs W (white)
-          ["red", "white", "black"]     // Round 3: R vs B (red), R vs W (white), B vs W (black) - Same as Round 1
+          ["red", "white", "black"], // Round 1: R vs B (red), R vs W (white), B vs W (black)
+          ["black", "red", "white"], // Round 2: R vs B (black), R vs W (red), B vs W (white)
+          ["red", "white", "black"], // Round 3: R vs B (red), R vs W (white), B vs W (black) - Same as Round 1
         ];
 
         for (let round = 1; round <= 3; round++) {
@@ -3426,38 +3426,10 @@
       }
 
       function proceedToFinal(team1, team2) {
-        // Determine which team gets the kick-off based on points table
-        // The team that finished on top gets the kick-off
-        const team1Points = standings[team1].points;
-        const team2Points = standings[team2].points;
-        
-        let kickoffTeam;
-        if (team1Points > team2Points) {
-          kickoffTeam = team1;
-        } else if (team2Points > team1Points) {
-          kickoffTeam = team2;
-        } else {
-          // If points are equal, check goal difference
-          const team1GD = standings[team1].gf - standings[team1].ga;
-          const team2GD = standings[team2].gf - standings[team2].ga;
-          
-          if (team1GD > team2GD) {
-            kickoffTeam = team1;
-          } else if (team2GD > team1GD) {
-            kickoffTeam = team2;
-          } else {
-            // If still tied, check goals scored
-            if (standings[team1].gf > standings[team2].gf) {
-              kickoffTeam = team1;
-            } else if (standings[team2].gf > standings[team1].gf) {
-              kickoffTeam = team2;
-            } else {
-              // If everything is equal, give it to team1 (first in alphabetical/default order)
-              kickoffTeam = team1;
-            }
-          }
-        }
-        
+        // team1 is always the team that finished first in the points table
+        // So team1 gets the kick-off
+        const kickoffTeam = team1;
+
         matches.push({
           id: matches.length,
           round: "final",
