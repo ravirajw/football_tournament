@@ -11,7 +11,7 @@
 const CONFIG = {
   // Storage
   STORAGE_KEY: "footballTournaments",
-  APP_VERSION: "v2.9.4",
+  APP_VERSION: "v3.0.0",
   IS_TESTING: false,
   SUPER_USER_CODES: ["SUPER1", "GOAL2", "KICK3", "PASS4", "WIN5"],
 
