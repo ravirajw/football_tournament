@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate Tournament Data to Player Database</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #log {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+        }
+        .log-success {
+            color: #28a745;
+        }
+        .log-error {
+            color: #dc3545;
+        }
+        .log-info {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Migrate Tournament Data to Player Database</h1>
+        
+        <div class="info">
+            <p><strong>Tournament ID:</strong> tournament_1764432357353_l6pyebkde</p>
+            <p>This script will:</p>
+            <ol>
+                <li>Fetch the tournament data from Firebase</li>
+                <li>Extract all unique players and their statistics</li>
+                <li>Create player records in the <code>/players</code> collection</li>
+                <li>Preserve all stats from this tournament</li>
+            </ol>
+        </div>
+
+        <button id="migrateBtn" onclick="runMigration()">Start Migration</button>
+        <button onclick="viewPlayers()">View Players Database</button>
+
+        <div id="log"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script src="js/firebase-config.js"></script>
+    
+    <!-- Player Database Service -->
+    <script src="js/player-database.js"></script>
+
+    <script>
+        let playerService = null;
+
+        // Initialize Firebase (already done by firebase-config.js, just use the global db)
+        function initFirebase() {
+            try {
+                if (typeof firebase !== 'undefined' && typeof db !== 'undefined') {
+                    // Create a mock firebaseStorage object for PlayerDatabaseService
+                    const mockStorage = { db: db };
+                    playerService = new PlayerDatabaseService(mockStorage);
+                    
+                    log('✅ Firebase initialized successfully', 'success');
+                    return true;
+                } else {
+                    log('❌ Firebase or db not found', 'error');
+                    return false;
+                }
+            } catch (e) {
+                log('❌ Firebase initialization failed: ' + e.message, 'error');
+                return false;
+            }
+        }
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        async function runMigration() {
+            const btn = document.getElementById('migrateBtn');
+            btn.disabled = true;
+            
+            log('🚀 Starting migration...', 'info');
+
+            try {
+                // Fetch tournament data
+                log('📥 Fetching tournament data...', 'info');
+                const tournamentId = 'tournament_1764432357353_l6pyebkde';
+                const tournamentDoc = await db.collection('tournaments').doc(tournamentId).get();
+
+                if (!tournamentDoc.exists) {
+                    log('❌ Tournament not found!', 'error');
+                    btn.disabled = false;
+                    return;
+                }
+
+                const tournamentData = tournamentDoc.data();
+                log('✅ Tournament data loaded', 'success');
+
+                // Extract teams and player stats
+                const teams = tournamentData.teams || {};
+                const playerStats = tournamentData.playerStats || {};
+                const keeperStats = tournamentData.keeperStats || {};
+                const standings = tournamentData.standings || {};
+                const matches = tournamentData.matches || [];
+
+                log(`📊 Found ${Object.keys(teams).length} teams`, 'info');
+                log(`👥 Found ${Object.keys(playerStats).length} players`, 'info');
+
+                // Get final match to determine winners
+                const finalMatch = matches.find(m => m.round === 'final');
+                let winnerTeam = null;
+                let runnerUpTeam = null;
+
+                if (finalMatch) {
+                    if (finalMatch.score1 > finalMatch.score2) {
+                        winnerTeam = finalMatch.team1;
+                        runnerUpTeam = finalMatch.team2;
+                    } else if (finalMatch.score2 > finalMatch.score1) {
+                        winnerTeam = finalMatch.team2;
+                        runnerUpTeam = finalMatch.team1;
+                    }
+                    log(`🏆 Final: ${teams[finalMatch.team1]?.name} ${finalMatch.score1} - ${finalMatch.score2} ${teams[finalMatch.team2]?.name}`, 'info');
+                }
+
+                // Process each player
+                let createdCount = 0;
+                let updatedCount = 0;
+
+                for (const [playerId, stats] of Object.entries(playerStats)) {
+                    const playerName = stats.name;
+                    const teamKey = stats.team;
+                    const teamData = teams[teamKey];
+
+                    log(`Processing player: ${playerName} (${teamData?.name} Team)`, 'info');
+
+                    // Get or create player
+                    const player = await playerService.getOrCreatePlayer(playerName);
+                    
+                    if (!player) {
+                        log(`❌ Failed to create/get player: ${playerName}`, 'error');
+                        continue;
+                    }
+
+                    const isNewPlayer = player.gamesPlayed === 0;
+                    if (isNewPlayer) {
+                        createdCount++;
+                        log(`✨ Created new player: ${playerName}`, 'success');
+                    }
+
+                    // Calculate player's game results from league matches
+                    const teamStandings = standings[teamKey] || {};
+                    let gamesPlayed = teamStandings.played || 0;
+                    let gamesWon = teamStandings.won || 0;
+                    let gamesLost = teamStandings.lost || 0;
+                    let gamesDrawn = teamStandings.drawn || 0;
+
+                    // Check if player was in final and add final match to totals
+                    let finalsPlayed = 0;
+                    let finalsWon = 0;
+                    let finalsLost = 0;
+
+                    if (finalMatch && (teamKey === finalMatch.team1 || teamKey === finalMatch.team2)) {
+                        finalsPlayed = 1;
+                        gamesPlayed += 1; // Add final to total games
+                        
+                        if (teamKey === winnerTeam) {
+                            finalsWon = 1;
+                            gamesWon += 1; // Add final win to total wins
+                        } else if (teamKey === runnerUpTeam) {
+                            finalsLost = 1;
+                            gamesLost += 1; // Add final loss to total losses
+                        } else {
+                            // Final was a draw (no winner/runner-up)
+                            gamesDrawn += 1;
+                        }
+                    }
+
+                    // Get keeper stats
+                    const keeperData = keeperStats[playerId] || {};
+
+                    // Prepare stats update
+                    const statsUpdate = {
+                        gamesPlayed: gamesPlayed,
+                        gamesWon: gamesWon,
+                        gamesLost: gamesLost,
+                        gamesDrawn: gamesDrawn,
+                        goals: stats.goals || 0,
+                        assists: stats.assists || 0,
+                        saves: keeperData.saves || 0,
+                        cleanSheets: keeperData.cleanSheets || 0,
+                        ownGoals: stats.ownGoals || 0,
+                        finalsPlayed: finalsPlayed,
+                        finalsWon: finalsWon,
+                        finalsLost: finalsLost
+                    };
+
+                    // Update player stats
+                    const success = await playerService.updatePlayerStats(player.id, statsUpdate, tournamentId);
+                    
+                    if (success) {
+                        updatedCount++;
+                        log(`✅ Updated stats for ${playerName}: ${statsUpdate.goals}G ${statsUpdate.assists}A ${statsUpdate.saves}S`, 'success');
+                    } else {
+                        log(`❌ Failed to update stats for ${playerName}`, 'error');
+                    }
+                }
+
+                log('', 'info');
+                log('🎉 Migration completed!', 'success');
+                log(`📊 Summary: ${createdCount} players created, ${updatedCount} players updated`, 'success');
+
+            } catch (error) {
+                log('❌ Migration failed: ' + error.message, 'error');
+                console.error(error);
+            }
+
+            btn.disabled = false;
+        }
+
+        async function viewPlayers() {
+            log('📋 Fetching all players...', 'info');
+            
+            try {
+                const players = await playerService.getAllPlayers();
+                log(`Found ${players.length} players in database:`, 'info');
+                
+                players.forEach(player => {
+                    log(`  • ${player.name}: ${player.goals}G ${player.assists}A ${player.saves}S | ${player.gamesPlayed} games`, 'info');
+                });
+            } catch (error) {
+                log('❌ Failed to fetch players: ' + error.message, 'error');
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!initFirebase()) {
+                log('❌ Please configure Firebase first!', 'error');
+                document.getElementById('migrateBtn').disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>

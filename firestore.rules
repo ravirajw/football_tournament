@@ -1,6 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Players collection rules
+    match /players/{player} {
+      allow read, write: if true;
+    }
+
     // Tournament collection rules
     match /tournaments/{tournamentId} {
       // Anyone can read tournaments (public viewing)
