@@ -18,6 +18,7 @@ function headerWithAdminControls() {
   dateDiv.style.display = "flex";
   dateDiv.style.flexDirection = "column";
   dateDiv.style.gap = "4px";
+  // TODO: Why are we using innerHTML here? Consider refactoring to use createElement like in headerView.js.
   dateDiv.innerHTML = `
     <div style="font-weight: 600;">📅 <strong id="dateText"></strong></div>
     <div id="tournamentStatus" style="font-weight: 600;"></div>
@@ -30,6 +31,7 @@ function headerWithAdminControls() {
   adminLoginDiv.style.display = "none";
   adminLoginDiv.style.fontSize = "0.8em";
   adminLoginDiv.style.fontWeight = "normal";
+  // TODO: Why are we using innerHTML here? Consider refactoring to use createElement like in headerView.js.
   adminLoginDiv.innerHTML = `<button class="btn-primary" onclick="showAdminLogin()" style="padding: 8px 16px">🔐 Admin Login</button>`;
   headerDiv.appendChild(adminLoginDiv);
 
@@ -39,6 +41,7 @@ function headerWithAdminControls() {
   adminLogoutDiv.style.display = "none";
   adminLogoutDiv.style.fontSize = "0.8em";
   adminLogoutDiv.style.fontWeight = "normal";
+  // TODO: Why are we using innerHTML here? Consider refactoring to use createElement like in headerView.js.
   adminLogoutDiv.innerHTML = `<button class="btn-danger" onclick="logoutAdmin()" style="padding: 8px 16px">🔐 Admin Logout</button>`;
   headerDiv.appendChild(adminLogoutDiv);
 
