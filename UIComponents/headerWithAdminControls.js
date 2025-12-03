@@ -19,7 +19,7 @@ function headerWithAdminControls() {
   dateDiv.style.flexDirection = "column";
   dateDiv.style.gap = "4px";
   dateDiv.innerHTML = `
-    <div>📅 <strong id="dateText"></strong></div>
+    <div style="font-weight: 600;">📅 <strong id="dateText"></strong></div>
     <div id="tournamentStatus" style="font-weight: 600;"></div>
   `;
   headerDiv.appendChild(dateDiv);
