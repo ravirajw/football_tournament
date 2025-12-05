@@ -2247,7 +2247,8 @@
                                 ? `
                                 <button class="btn-warning" onclick="showGoalDialog(${match.id})">Add Goal</button>
                                 <button class="btn-danger" onclick="showOwnGoalDialog(${match.id})">Add Own Goal</button>
-                                <button class="btn-primary" onclick="showSaveDialog(${match.id})">Add Save</button>
+                                <button class="btn-primary" onclick="recordQuickSave(${match.id}, '${match.team1}')" style="background: ${teams[match.team1].color}; border-color: ${teams[match.team1].color};">🧤 ${teams[match.team1].name} Save</button>
+                                <button class="btn-primary" onclick="recordQuickSave(${match.id}, '${match.team2}')" style="background: ${teams[match.team2].color}; border-color: ${teams[match.team2].color};">🧤 ${teams[match.team2].name} Save</button>
                                 <button class="btn-danger" onclick="endMatch(${match.id})">End Match</button>
                                 <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0; grid-column: 1 / -1;">🎲 Random Events</button>
                             `
@@ -3033,6 +3034,51 @@
         });
 
         const keeperId = `${keeperTeam}-${keeper}`;
+        keeperStats[keeperId].saves++;
+
+        renderMatches();
+        updateLeaderboard();
+        updateTournamentStorage();
+      }
+
+      /**
+       * Record a save quickly without showing modal
+       * @param {number} matchId - The match ID
+       * @param {string} teamKey - The team key (e.g., 'red', 'black', 'white')
+       */
+      function recordQuickSave(matchId, teamKey) {
+        if (!checkAdmin()) return;
+
+        const match = matches.find((m) => m.id === matchId);
+        if (!match || match.status !== "live") {
+          alert("Match must be live to record a save");
+          return;
+        }
+
+        const keeper = teamKey === match.team1 ? match.keeper1 : match.keeper2;
+        
+        if (!keeper) {
+          alert("Goalkeeper not assigned for this team");
+          return;
+        }
+
+        const elapsedTime = match.startTimeUTC
+          ? Math.floor(
+              (Date.now() - new Date(match.startTimeUTC).getTime()) / 1000
+            )
+          : 0;
+        const minutes = Math.floor(elapsedTime / 60);
+
+        match.goals.push({
+          team: teamKey,
+          scorer: keeper,
+          assist: "",
+          ownGoal: false,
+          time: minutes,
+          type: "save",
+        });
+
+        const keeperId = `${teamKey}-${keeper}`;
         keeperStats[keeperId].saves++;
 
         renderMatches();
