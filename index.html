@@ -2746,15 +2746,7 @@
         showEventStep();
       }
 
-      function showSaveDialog(matchId) {
-        if (!checkAdmin()) return;
 
-        currentEventMatch = matchId;
-        currentEventType = "save";
-        eventStep = 1;
-        eventData = {};
-        showEventStep();
-      }
 
       function showEventStep() {
         const match = matches.find((m) => m.id === currentEventMatch);
@@ -2897,35 +2889,6 @@
                 });
             }, 10);
           }
-        } else if (currentEventType === "save") {
-          if (eventStep === 1) {
-            title.textContent = "Select Goalkeeper Team";
-            content.innerHTML = `
-                        <div style="display: flex; flex-direction: column; gap: 10px;" id="saveTeamBtnContainer">
-                            <button class="btn-primary" style="padding: 15px;" data-team="${
-                              match.team1
-                            }">${teams[match.team1].name} (${
-              match.keeper1
-            })</button>
-                            <button class="btn-primary" style="padding: 15px;" data-team="${
-                              match.team2
-                            }">${teams[match.team2].name} (${
-              match.keeper2
-            })</button>
-                        </div>
-                    `;
-            setTimeout(() => {
-              document
-                .querySelectorAll("#saveTeamBtnContainer button")
-                .forEach((btn) => {
-                  btn.onclick = () => {
-                    eventData.team = btn.getAttribute("data-team");
-                    recordSave(currentEventMatch);
-                    closeEventModal();
-                  };
-                });
-            }, 10);
-          }
         }
 
         modal.style.display = "flex";
@@ -3011,35 +2974,7 @@
         }
       }
 
-      function recordSave(matchId) {
-        const match = matches.find((m) => m.id === matchId);
-        const keeperTeam = eventData.team;
-        const keeper =
-          keeperTeam === match.team1 ? match.keeper1 : match.keeper2;
 
-        const elapsedTime = match.startTimeUTC
-          ? Math.floor(
-              (Date.now() - new Date(match.startTimeUTC).getTime()) / 1000
-            )
-          : 0;
-        const minutes = Math.floor(elapsedTime / 60);
-
-        match.goals.push({
-          team: keeperTeam,
-          scorer: keeper,
-          assist: "",
-          ownGoal: false,
-          time: minutes,
-          type: "save",
-        });
-
-        const keeperId = `${keeperTeam}-${keeper}`;
-        keeperStats[keeperId].saves++;
-
-        renderMatches();
-        updateLeaderboard();
-        updateTournamentStorage();
-      }
 
       /**
        * Record a save quickly without showing modal
