@@ -2245,12 +2245,12 @@
                             ${
                               match.status === "live"
                                 ? `
-                                <button class="btn-warning" onclick="showGoalDialog(${match.id})">Add Goal</button>
-                                <button class="btn-danger" onclick="showOwnGoalDialog(${match.id})">Add Own Goal</button>
-                                <button class="btn-primary" onclick="recordQuickSave(${match.id}, '${match.team1}')" style="background: ${teams[match.team1].color}; border-color: ${teams[match.team1].color};">🧤 ${teams[match.team1].name} Save</button>
-                                <button class="btn-primary" onclick="recordQuickSave(${match.id}, '${match.team2}')" style="background: ${teams[match.team2].color}; border-color: ${teams[match.team2].color};">🧤 ${teams[match.team2].name} Save</button>
-                                <button class="btn-danger" onclick="endMatch(${match.id})">End Match</button>
-                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0; grid-column: 1 / -1;">🎲 Random Events</button>
+                                <button class="btn-primary" onclick="showGoalDialog(${match.id})" style="background: #1976d2; border-color: #1976d2;">⚽ Add<br>Goal</button>
+                                <button class="btn-primary" onclick="showOwnGoalDialog(${match.id})" style="background: #1976d2; border-color: #1976d2;">⚠️ Add<br>Own Goal</button>
+                                <button class="btn-primary" onclick="recordQuickSave(${match.id}, '${match.team1}')" style="background: ${teams[match.team1].color}; border-color: ${teams[match.team1].color};">🧤 ${teams[match.team1].name}<br>Save</button>
+                                <button class="btn-primary" onclick="recordQuickSave(${match.id}, '${match.team2}')" style="background: ${teams[match.team2].color}; border-color: ${teams[match.team2].color};">🧤 ${teams[match.team2].name}<br>Save</button>
+                                <button class="btn-primary" onclick="endMatch(${match.id})" style="background: #1976d2; border-color: #1976d2; grid-column: 1 / -1;">🏁 End Match</button>
+                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #1976d2; border-color: #1976d2; grid-column: 1 / -1;">🎲 Random Events</button>
                             `
                                 : ""
                             }
