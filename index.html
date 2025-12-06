@@ -137,6 +137,74 @@
         color: #333;
       }
 
+      /* Match Control Button Styles - Only for match action buttons */
+      .match-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        line-height: 1.3;
+        text-align: center;
+        color: white;
+      }
+
+      .match-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .match-action-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Add Goal - Green */
+      .match-btn-goal {
+        background-color: #28a745;
+      }
+
+      .match-btn-goal:hover {
+        background-color: #218838;
+      }
+
+      /* Add Own Goal - Purple */
+      .match-btn-own-goal {
+        background-color: #9c27b0;
+      }
+
+      .match-btn-own-goal:hover {
+        background-color: #7b1fa2;
+      }
+
+      /* Match Control Buttons - Blue */
+      .match-btn-control {
+        background-color: #1976d2;
+      }
+
+      .match-btn-control:hover {
+        background-color: #1565c0;
+      }
+
+      /* Full width match buttons */
+      .match-btn-full {
+        flex-direction: row;
+        gap: 10px;
+        padding: 15px 10px;
+      }
+
+      .match-action-btn .icon-large {
+        font-size: 24px;
+        margin-bottom: 6px;
+      }
+
       .player-list {
         margin-top: 16px;
       }
@@ -2245,12 +2313,30 @@
                             ${
                               match.status === "live"
                                 ? `
-                                <button class="btn-primary" onclick="showGoalDialog(${match.id})" style="background: #1976d2; border-color: #1976d2;">⚽ Add<br>Goal</button>
-                                <button class="btn-primary" onclick="showOwnGoalDialog(${match.id})" style="background: #1976d2; border-color: #1976d2;">⚠️ Add<br>Own Goal</button>
-                                <button class="btn-primary" onclick="recordQuickSave(${match.id}, '${match.team1}')" style="background: ${teams[match.team1].color}; border-color: ${teams[match.team1].color};">🧤 ${teams[match.team1].name}<br>Save</button>
-                                <button class="btn-primary" onclick="recordQuickSave(${match.id}, '${match.team2}')" style="background: ${teams[match.team2].color}; border-color: ${teams[match.team2].color};">🧤 ${teams[match.team2].name}<br>Save</button>
-                                <button class="btn-primary" onclick="endMatch(${match.id})" style="background: #1976d2; border-color: #1976d2; grid-column: 1 / -1;">🏁 End Match</button>
-                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #1976d2; border-color: #1976d2; grid-column: 1 / -1;">🎲 Random Events</button>
+                                <button class="match-action-btn match-btn-goal" onclick="showGoalDialog(${match.id})">
+                                    <span class="icon-large">⚽</span>
+                                    <span>Add<br>Goal</span>
+                                </button>
+                                <button class="match-action-btn match-btn-own-goal" onclick="showOwnGoalDialog(${match.id})">
+                                    <span class="icon-large">⚠️</span>
+                                    <span>Add<br>Own Goal</span>
+                                </button>
+                                <button class="match-action-btn" onclick="recordQuickSave(${match.id}, '${match.team1}')" style="background: ${teams[match.team1].color};">
+                                    <span class="icon-large">🧤</span>
+                                    <span>${teams[match.team1].name}<br>Save</span>
+                                </button>
+                                <button class="match-action-btn" onclick="recordQuickSave(${match.id}, '${match.team2}')" style="background: ${teams[match.team2].color};">
+                                    <span class="icon-large">🧤</span>
+                                    <span>${teams[match.team2].name}<br>Save</span>
+                                </button>
+                                <button class="match-action-btn match-btn-control match-btn-full" onclick="endMatch(${match.id})" style="grid-column: 1 / -1;">
+                                    <span class="icon-large">🏁</span>
+                                    <span>End Match</span>
+                                </button>
+                                <button class="match-action-btn match-btn-control match-btn-full" onclick="simulateMatch(${match.id})" style="grid-column: 1 / -1;">
+                                    <span class="icon-large">🎲</span>
+                                    <span>Random Events</span>
+                                </button>
                             `
                                 : ""
                             }
