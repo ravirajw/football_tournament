@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Football Tournament Manager</title>
+    <!-- Firebase Configuration -->
+    <script src="js/config.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
       * {
         margin: 0;
@@ -184,22 +190,47 @@
         background-color: #7b1fa2;
       }
 
-      /* Match Control Buttons - Blue */
+      /* Match Control Buttons - Global Base */
       .match-btn-control {
-        background-color: #1976d2;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 12px;
+        color: white;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        transition: all 0.3s ease;
       }
 
       .match-btn-control:hover {
-        background-color: #1565c0;
+        transform: scale(1.05);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
       }
 
-      /* Full width match buttons */
-      .match-btn-full {
-        flex-direction: row;
-        gap: 10px;
-        padding: 15px 10px;
+      .match-btn-control:active {
+        transform: scale(0.95);
       }
 
+      /* End Match - Blue Gradient */
+      .btn-end-match {
+        background: linear-gradient(to right, #2563EB, #1D4ED8); /* from-blue-600 to-blue-700 */
+      }
+
+      /* Random Events - Purple-Pink Gradient */
+      .btn-random-events {
+        background: linear-gradient(to right, #9333EA, #DB2777); /* from-purple-600 to-pink-600 */
+      }
+
+      .icon-svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+      }
+      
       .match-action-btn .icon-large {
         font-size: 24px;
         margin-bottom: 6px;
@@ -2329,12 +2360,12 @@
                                     <span class="icon-large">🧤</span>
                                     <span>${teams[match.team2].name}<br>Save</span>
                                 </button>
-                                <button class="match-action-btn match-btn-control match-btn-full" onclick="endMatch(${match.id})" style="grid-column: 1 / -1;">
-                                    <span class="icon-large">🏁</span>
+                                <button class="match-btn-control btn-end-match" onclick="endMatch(${match.id})" style="grid-column: 1 / -1;">
+                                    <i data-lucide="flag-triangle-right" class="icon-svg"></i>
                                     <span>End Match</span>
                                 </button>
-                                <button class="match-action-btn match-btn-control match-btn-full" onclick="simulateMatch(${match.id})" style="grid-column: 1 / -1;">
-                                    <span class="icon-large">🎲</span>
+                                <button class="match-btn-control btn-random-events" onclick="simulateMatch(${match.id})" style="grid-column: 1 / -1;">
+                                    <i data-lucide="shuffle" class="icon-svg"></i>
                                     <span>Random Events</span>
                                 </button>
                             `
@@ -2402,6 +2433,11 @@
 
         // Update tournament status
         updateTournamentStatus();
+
+        // Initialize Lucide icons
+        if (window.lucide) {
+          lucide.createIcons();
+        }
       }
 
       function startMatch(matchId) {
