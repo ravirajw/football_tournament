@@ -137,6 +137,74 @@
         color: #333;
       }
 
+      /* Match Control Button Styles - Only for match action buttons */
+      .match-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        line-height: 1.3;
+        text-align: center;
+        color: white;
+      }
+
+      .match-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .match-action-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Add Goal - Green */
+      .match-btn-goal {
+        background-color: #28a745;
+      }
+
+      .match-btn-goal:hover {
+        background-color: #218838;
+      }
+
+      /* Add Own Goal - Purple */
+      .match-btn-own-goal {
+        background-color: #9c27b0;
+      }
+
+      .match-btn-own-goal:hover {
+        background-color: #7b1fa2;
+      }
+
+      /* Match Control Buttons - Blue */
+      .match-btn-control {
+        background-color: #1976d2;
+      }
+
+      .match-btn-control:hover {
+        background-color: #1565c0;
+      }
+
+      /* Full width match buttons */
+      .match-btn-full {
+        flex-direction: row;
+        gap: 10px;
+        padding: 15px 10px;
+      }
+
+      .match-action-btn .icon-large {
+        font-size: 24px;
+        margin-bottom: 6px;
+      }
+
       .player-list {
         margin-top: 16px;
       }
@@ -2247,11 +2315,30 @@
                             ${
                               match.status === "live"
                                 ? `
-                                <button class="btn-warning" onclick="showGoalDialog(${match.id})">Add Goal</button>
-                                <button class="btn-danger" onclick="showOwnGoalDialog(${match.id})">Add Own Goal</button>
-                                <button class="btn-primary" onclick="showSaveDialog(${match.id})">Add Save</button>
-                                <button class="btn-danger" onclick="endMatch(${match.id})">End Match</button>
-                                <button class="btn-primary" onclick="simulateMatch(${match.id})" style="background: #9c27b0; grid-column: 1 / -1;">🎲 Random Events</button>
+                                <button class="match-action-btn match-btn-goal" onclick="showGoalDialog(${match.id})">
+                                    <span class="icon-large">⚽</span>
+                                    <span>Add<br>Goal</span>
+                                </button>
+                                <button class="match-action-btn match-btn-own-goal" onclick="showOwnGoalDialog(${match.id})">
+                                    <span class="icon-large">⚠️</span>
+                                    <span>Add<br>Own Goal</span>
+                                </button>
+                                <button class="match-action-btn" onclick="recordQuickSave(${match.id}, '${match.team1}')" style="background: ${teams[match.team1].color};">
+                                    <span class="icon-large">🧤</span>
+                                    <span>${teams[match.team1].name}<br>Save</span>
+                                </button>
+                                <button class="match-action-btn" onclick="recordQuickSave(${match.id}, '${match.team2}')" style="background: ${teams[match.team2].color};">
+                                    <span class="icon-large">🧤</span>
+                                    <span>${teams[match.team2].name}<br>Save</span>
+                                </button>
+                                <button class="match-action-btn match-btn-control match-btn-full" onclick="endMatch(${match.id})" style="grid-column: 1 / -1;">
+                                    <span class="icon-large">🏁</span>
+                                    <span>End Match</span>
+                                </button>
+                                <button class="match-action-btn match-btn-control match-btn-full" onclick="simulateMatch(${match.id})" style="grid-column: 1 / -1;">
+                                    <span class="icon-large">🎲</span>
+                                    <span>Random Events</span>
+                                </button>
                             `
                                 : ""
                             }
@@ -2747,15 +2834,7 @@
         showEventStep();
       }
 
-      function showSaveDialog(matchId) {
-        if (!checkAdmin()) return;
 
-        currentEventMatch = matchId;
-        currentEventType = "save";
-        eventStep = 1;
-        eventData = {};
-        showEventStep();
-      }
 
       function showEventStep() {
         const match = matches.find((m) => m.id === currentEventMatch);
@@ -2898,35 +2977,6 @@
                 });
             }, 10);
           }
-        } else if (currentEventType === "save") {
-          if (eventStep === 1) {
-            title.textContent = "Select Goalkeeper Team";
-            content.innerHTML = `
-                        <div style="display: flex; flex-direction: column; gap: 10px;" id="saveTeamBtnContainer">
-                            <button class="btn-primary" style="padding: 15px;" data-team="${
-                              match.team1
-                            }">${teams[match.team1].name} (${
-              match.keeper1
-            })</button>
-                            <button class="btn-primary" style="padding: 15px;" data-team="${
-                              match.team2
-                            }">${teams[match.team2].name} (${
-              match.keeper2
-            })</button>
-                        </div>
-                    `;
-            setTimeout(() => {
-              document
-                .querySelectorAll("#saveTeamBtnContainer button")
-                .forEach((btn) => {
-                  btn.onclick = () => {
-                    eventData.team = btn.getAttribute("data-team");
-                    recordSave(currentEventMatch);
-                    closeEventModal();
-                  };
-                });
-            }, 10);
-          }
         }
 
         modal.style.display = "flex";
@@ -3012,11 +3062,28 @@
         }
       }
 
-      function recordSave(matchId) {
+
+
+      /**
+       * Record a save quickly without showing modal
+       * @param {number} matchId - The match ID
+       * @param {string} teamKey - The team key (e.g., 'red', 'black', 'white')
+       */
+      function recordQuickSave(matchId, teamKey) {
+        if (!checkAdmin()) return;
+
         const match = matches.find((m) => m.id === matchId);
-        const keeperTeam = eventData.team;
-        const keeper =
-          keeperTeam === match.team1 ? match.keeper1 : match.keeper2;
+        if (!match || match.status !== "live") {
+          alert("Match must be live to record a save");
+          return;
+        }
+
+        const keeper = teamKey === match.team1 ? match.keeper1 : match.keeper2;
+        
+        if (!keeper) {
+          alert("Goalkeeper not assigned for this team");
+          return;
+        }
 
         const elapsedTime = match.startTimeUTC
           ? Math.floor(
@@ -3026,7 +3093,7 @@
         const minutes = Math.floor(elapsedTime / 60);
 
         match.goals.push({
-          team: keeperTeam,
+          team: teamKey,
           scorer: keeper,
           assist: "",
           ownGoal: false,
@@ -3034,7 +3101,7 @@
           type: "save",
         });
 
-        const keeperId = `${keeperTeam}-${keeper}`;
+        const keeperId = `${teamKey}-${keeper}`;
         keeperStats[keeperId].saves++;
 
         renderMatches();
