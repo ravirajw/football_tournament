@@ -3621,11 +3621,13 @@
         // 1. Header (already there)
 
         // 2. TOURNAMENT WINNER
-        const winnerSection = createTournamentWinnerBanner({
-          winnerName: teams[winner].name,
-          winnerColor: teams[winner].color,
-        });
-        detailPage.appendChild(winnerSection);
+        if (winner) {
+          const winnerSection = createTournamentWinnerBanner({
+            winnerName: teams[winner].name,
+            winnerColor: teams[winner].color,
+          });
+          detailPage.appendChild(winnerSection);
+        }
 
         // 3. FINAL MATCH
         const finalMatchSection = document.createElement("div");
