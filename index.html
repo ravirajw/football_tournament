@@ -4412,6 +4412,11 @@
 
         message += `📅 *Date:* ${tournamentDate}\n\n`;
 
+        message += `━━━━━━━━━━━━━━━━━\n\n`;
+
+        // Calculate Standings first for use across the function
+        const sorted = getSortedStandings();
+
         const final = matches.find((m) => m.round === "final");
         let winner =
           final.score1 > final.score2
@@ -4429,7 +4434,6 @@
         // Fallback for drawn final
         if (!winner) {
           // Standings 
-          const sorted = getSortedStandings();
           winner = sorted[0].key;
           runnerUp = sorted[1].key;
         }
@@ -4549,8 +4553,6 @@
         message += `━━━━━━━━━━━━━━━━━\n\n`;
 
         message += `📊 *STANDINGS*\n\n`;
-        message += `📊 *STANDINGS*\n\n`;
-        const sorted = getSortedStandings();
 
         sorted.forEach((team, idx) => {
           const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
