@@ -3520,9 +3520,22 @@
       }
 
       function isTournamentComplete() {
-        // Tournament is complete if the final match exists and is completed
+        // 1. Classic completion: Final match exists and is completed
         const finalMatch = matches.find((m) => m.round === "final");
-        return finalMatch && finalMatch.status === "completed";
+        if (finalMatch && finalMatch.status === "completed") return true;
+
+        // 2. Special case: Final match deleted or not created, but all league matches completed
+        const leagueMatches = matches.filter((m) => m.round !== "final");
+        const allLeagueCompleted =
+          leagueMatches.length > 0 &&
+          leagueMatches.every((m) => m.status === "completed");
+
+        if (!finalMatch && allLeagueCompleted) return true;
+
+        // 3. User manually ended tournament (has ABANDONED matches)
+        if (isTournamentEnded()) return true;
+
+        return false;
       }
 
       function isTournamentEnded() {
