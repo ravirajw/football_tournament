@@ -4439,16 +4439,14 @@
         }
 
         if (winner) {
-          message += `━━━━━━━━━━━━━━━━━\n\n`;
-
           message += `👑 *CHAMPION*\n`;
-          message += `${teams[winner].name.toUpperCase()} TEAM 🥇\n\n`;
+          message += `${teams[winner].name.toUpperCase()} TEAM\n\n`;
 
           message += `🥈 *RUNNER-UP*\n`;
-          message += `${teams[runnerUp].name} Team\n\n`;
-        }
+          message += `${teams[runnerUp].name.toUpperCase()} TEAM\n\n`;
 
-        message += `━━━━━━━━━━━━━━━━━\n\n`;
+          message += `━━━━━━━━━━━━━━━━━\n\n`;
+        }
 
         message += `🏅 *INDIVIDUAL AWARDS*\n\n`;
 
