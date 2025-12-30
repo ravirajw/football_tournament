@@ -3621,6 +3621,51 @@
         // 1. Header (already there)
 
         // 2. TOURNAMENT WINNER
+        let showFinalMatch = true;
+
+        if (!winner) {
+          console.log("⚠️ Final ended in draw. Discarding final match and using league standings.");
+          showFinalMatch = false;
+
+          // 1. Determine Winner from League Standings
+          const sorted = Object.entries(standings)
+            .map(([key, val]) => ({
+              key,
+              ...val,
+              gd: val.gf - val.ga,
+              cs: val.cleanSheets || 0,
+            }))
+            .sort((a, b) => {
+              if (b.points !== a.points) return b.points - a.points;
+              if (b.gd !== a.gd) return b.gd - a.gd;
+              if (b.gf !== a.gf) return b.gf - a.gf;
+              return b.cs - a.cs;
+            });
+          
+          winner = sorted[0].key;
+
+          // 2. Discard Final Match Stats (Revert Clean Sheets & Saves)
+          if (finalMatch) {
+             const k1 = `${finalMatch.team1}-${finalMatch.keeper1}`;
+             const k2 = `${finalMatch.team2}-${finalMatch.keeper2}`;
+             
+             // Revert Clean Sheets
+             if (keeperStats[k1]) keeperStats[k1].cleanSheets--;
+             if (keeperStats[k2]) keeperStats[k2].cleanSheets--;
+             
+             // Revert Saves
+             if (finalMatch.goals) {
+                finalMatch.goals.forEach(goal => {
+                    if (goal.type === 'save' && keeperStats[goal.scorer]) {
+                        keeperStats[goal.scorer].saves--;
+                    }
+                });
+             }
+             
+             console.log("Reverted clean sheet and save stats for final match keepers.");
+          }
+        }
+
         if (winner) {
           const winnerSection = createTournamentWinnerBanner({
             winnerName: teams[winner].name,
@@ -3629,17 +3674,19 @@
           detailPage.appendChild(winnerSection);
         }
 
-        // 3. FINAL MATCH
-        const finalMatchSection = document.createElement("div");
-        finalMatchSection.id = "finalMatchSection";
-        finalMatchSection.className = "section";
-        finalMatchSection.innerHTML = `
-                <h2>🏆 Final Match</h2>
-                <div class="matches-grid">
-                    ${separateFinalMatch()}
-                </div>
-            `;
-        detailPage.appendChild(finalMatchSection);
+        // 3. FINAL MATCH (Only show if not discarded)
+        if (showFinalMatch) {
+            const finalMatchSection = document.createElement("div");
+            finalMatchSection.id = "finalMatchSection";
+            finalMatchSection.className = "section";
+            finalMatchSection.innerHTML = `
+                    <h2>🏆 Final Match</h2>
+                    <div class="matches-grid">
+                        ${separateFinalMatch()}
+                    </div>
+                `;
+            detailPage.appendChild(finalMatchSection);
+        }
 
         // 4. TOP PERFORMERS
         const topLeaderboardSection = createTopLeaderboardSection();
