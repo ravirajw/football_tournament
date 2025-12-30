@@ -3191,21 +3191,9 @@
 
       function updateTable() {
         const tbody = document.getElementById("tableBody");
-        const sorted = Object.entries(standings)
-          .map(([key, val]) => ({
-            key,
-            ...val,
-            gd: val.gf - val.ga,
-            cs: val.cleanSheets || 0,
-          }))
-          .sort((a, b) => {
-            if (b.points !== a.points) return b.points - a.points;
-            if (b.gd !== a.gd) return b.gd - a.gd;
-            const h2h = getHeadToHead(a.key, b.key);
-            if (h2h !== 0) return h2h;
-            if (b.gf !== a.gf) return b.gf - a.gf;
-            return b.cs - a.cs;
-          });
+        if (!tbody) return;
+
+        const sorted = getSortedStandings();
 
         const tableHTML = sorted
           .map(
@@ -3263,19 +3251,7 @@
       }
 
       function createFinal() {
-        const sorted = Object.entries(standings)
-          .map(([key, val]) => ({
-            key,
-            ...val,
-            gd: val.gf - val.ga,
-            cs: val.cleanSheets || 0,
-          }))
-          .sort((a, b) => {
-            if (b.points !== a.points) return b.points - a.points;
-            if (b.gd !== a.gd) return b.gd - a.gd;
-            if (b.gf !== a.gf) return b.gf - a.gf;
-            return b.cs - a.cs;
-          });
+        const sorted = getSortedStandings();
 
         // Check if top 3 teams are completely equal
         if (sorted.length >= 3) {
@@ -3631,7 +3607,7 @@
         console.log("🔄 Reorganizing page for completed tournament...");
 
         const finalMatch = matches.find((m) => m.round === "final");
-        const winner =
+        let winner =
           finalMatch.score1 > finalMatch.score2
             ? finalMatch.team1
             : finalMatch.score2 > finalMatch.score1
@@ -3657,23 +3633,60 @@
         // 1. Header (already there)
 
         // 2. TOURNAMENT WINNER
-        const winnerSection = createTournamentWinnerBanner({
-          winnerName: teams[winner].name,
-          winnerColor: teams[winner].color,
-        });
-        detailPage.appendChild(winnerSection);
+        let showFinalMatch = true;
 
-        // 3. FINAL MATCH
-        const finalMatchSection = document.createElement("div");
-        finalMatchSection.id = "finalMatchSection";
-        finalMatchSection.className = "section";
-        finalMatchSection.innerHTML = `
-                <h2>🏆 Final Match</h2>
-                <div class="matches-grid">
-                    ${separateFinalMatch()}
-                </div>
-            `;
-        detailPage.appendChild(finalMatchSection);
+        if (!winner) {
+          console.log("⚠️ Final ended in draw. Discarding final match and using league standings.");
+          showFinalMatch = false;
+
+          // 1. Determine Winner from League Standings
+          const sorted = getSortedStandings();
+          
+          winner = sorted[0].key;
+
+          // 2. Discard Final Match Stats (Revert Clean Sheets & Saves)
+          if (finalMatch) {
+             const k1 = `${finalMatch.team1}-${finalMatch.keeper1}`;
+             const k2 = `${finalMatch.team2}-${finalMatch.keeper2}`;
+             
+             // Revert Clean Sheets
+             if (keeperStats[k1]) keeperStats[k1].cleanSheets--;
+             if (keeperStats[k2]) keeperStats[k2].cleanSheets--;
+             
+             // Revert Saves
+             if (finalMatch.goals) {
+                finalMatch.goals.forEach(goal => {
+                    if (goal.type === 'save' && keeperStats[goal.scorer]) {
+                        keeperStats[goal.scorer].saves--;
+                    }
+                });
+             }
+             
+             console.log("Reverted clean sheet and save stats for final match keepers.");
+          }
+        }
+
+        if (winner) {
+          const winnerSection = createTournamentWinnerBanner({
+            winnerName: teams[winner].name,
+            winnerColor: teams[winner].color,
+          });
+          detailPage.appendChild(winnerSection);
+        }
+
+        // 3. FINAL MATCH (Only show if not discarded)
+        if (showFinalMatch) {
+            const finalMatchSection = document.createElement("div");
+            finalMatchSection.id = "finalMatchSection";
+            finalMatchSection.className = "section";
+            finalMatchSection.innerHTML = `
+                    <h2>🏆 Final Match</h2>
+                    <div class="matches-grid">
+                        ${separateFinalMatch()}
+                    </div>
+                `;
+            detailPage.appendChild(finalMatchSection);
+        }
 
         // 4. TOP PERFORMERS
         const topLeaderboardSection = createTopLeaderboardSection();
@@ -4244,19 +4257,7 @@
 
       function generateLeaderboardStats() {
         // Get sorted standings (excluding final match stats)
-        const sorted = Object.entries(standings)
-          .map(([key, val]) => ({
-            key,
-            ...val,
-            gd: val.gf - val.ga,
-            cs: val.cleanSheets || 0,
-          }))
-          .sort((a, b) => {
-            if (b.points !== a.points) return b.points - a.points;
-            if (b.gd !== a.gd) return b.gd - a.gd;
-            if (b.gf !== a.gf) return b.gf - a.gf;
-            return b.cs - a.cs;
-          });
+        const sorted = getSortedStandings();
 
         // Top Scorers
         const topScorersArr = Object.values(playerStats)
@@ -4417,43 +4418,13 @@
         container.appendChild(viewElement);
       }
 
+
       /**
-       * Generate tournament summary message
-       * @returns {string} Formatted tournament summary message
+       * Get sorted standings array
+       * Sorts by Points -> Goal Difference -> Goals Scored -> Clean Sheets
        */
-      function generateTournamentSummaryMessage() {
-        let message = `🏆 *TOURNAMENT RESULTS* 🏆\n\n`;
-
-        message += `📅 *Date:* ${tournamentDate}\n\n`;
-
-        message += `━━━━━━━━━━━━━━━━━\n\n`;
-
-        const final = matches.find((m) => m.round === "final");
-        const winner =
-          final.score1 > final.score2
-            ? final.team1
-            : final.score2 > final.score1
-            ? final.team2
-            : null;
-        const runnerUp =
-          final.score1 > final.score2
-            ? final.team2
-            : final.score2 > final.score1
-            ? final.team1
-            : null;
-
-        if (winner) {
-          message += `👑 *CHAMPION*\n`;
-          message += `${teams[winner].name.toUpperCase()} TEAM 🥇\n\n`;
-
-          message += `🥈 *RUNNER-UP*\n`;
-          message += `${teams[runnerUp].name} Team\n\n`;
-        }
-
-        message += `━━━━━━━━━━━━━━━━━\n\n`;
-
-        message += `📊 *FINAL STANDINGS*\n\n`;
-        const sorted = Object.entries(standings)
+      function getSortedStandings() {
+        return Object.entries(standings)
           .map(([key, val]) => ({
             key,
             ...val,
@@ -4466,17 +4437,52 @@
             if (b.gf !== a.gf) return b.gf - a.gf;
             return b.cs - a.cs;
           });
+      }
 
-        sorted.forEach((team, idx) => {
-          const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
-          message += `${medal} *${teams[team.key].name}*\n`;
-          message += `   Pts: ${team.points} | P: ${team.played} | W: ${team.won} | D: ${team.drawn} | L: ${team.lost}\n`;
-          message += `   GF: ${team.gf} | GA: ${team.ga} | GD: ${
-            team.gd >= 0 ? "+" : ""
-          }${team.gd} | CS: ${team.cs}\n\n`;
-        });
+      /**
+       * Generate tournament summary message
+       * @returns {string} Formatted tournament summary message
+       */
+      function generateTournamentSummaryMessage() {
+        let message = `🏆 *TOURNAMENT RESULTS* 🏆\n\n`;
+
+        message += `📅 *Date:* ${tournamentDate}\n\n`;
 
         message += `━━━━━━━━━━━━━━━━━\n\n`;
+
+        // Calculate Standings first for use across the function
+        const sorted = getSortedStandings();
+
+        const final = matches.find((m) => m.round === "final");
+        let winner =
+          final.score1 > final.score2
+            ? final.team1
+            : final.score2 > final.score1
+            ? final.team2
+            : null;
+        let runnerUp =
+          final.score1 > final.score2
+            ? final.team2
+            : final.score2 > final.score1
+            ? final.team1
+            : null;
+
+        // Fallback for drawn final
+        if (!winner) {
+          // Standings 
+          winner = sorted[0].key;
+          runnerUp = sorted[1].key;
+        }
+
+        if (winner) {
+          message += `👑 *CHAMPION*\n`;
+          message += `${teams[winner].name.toUpperCase()} TEAM\n\n`;
+
+          message += `🥈 *RUNNER-UP*\n`;
+          message += `${teams[runnerUp].name.toUpperCase()} TEAM\n\n`;
+
+          message += `━━━━━━━━━━━━━━━━━\n\n`;
+        }
 
         message += `🏅 *INDIVIDUAL AWARDS*\n\n`;
 
@@ -4484,18 +4490,20 @@
           .filter((p) => p.goals > 0)
           .sort((a, b) => b.goals - a.goals);
 
-        if (topScorersArr.length > 0) {
+        if (topScorersArr.length > 1) {
           const topGoals = topScorersArr[0].goals;
           const topScorers = topScorersArr.filter((p) => p.goals === topGoals);
 
-          message += `⚽ *TOP SCORER${topScorers.length > 1 ? "S" : ""}*\n`;
+          message += `⚽ *TOP SCORERS*\n`;
           topScorers.forEach((p) => {
-            message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.goals} goal${
-              p.goals > 1 ? "s" : ""
-            }\n`;
+            message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.goals} goal${p.goals > 1 ? "s" : ""}\n`;
           });
-          message += `\n`;
+        } else if (topScorersArr.length === 1) {
+          const p = topScorersArr[0];
+          message += `⚽ *TOP SCORER*\n`;
+          message += `🥇 ${p.name} (${teams[p.team].name}) - ${p.goals} goal${p.goals > 1 ? "s" : ""}\n`;
         }
+        message += `\n`;
 
         const topAssistsArr = Object.values(playerStats)
           .filter((p) => p.assists > 0)
@@ -4578,64 +4586,19 @@
 
         message += `━━━━━━━━━━━━━━━━━\n\n`;
 
-        message += `📋 *ALL MATCH RESULTS*\n\n`;
-        matches.forEach((m, idx) => {
-          if (m.status === "completed") {
-            const isFinal = m.round === "final";
-            const matchLabel = isFinal
-              ? "🏆 FINAL"
-              : `Round ${m.round} - Match ${idx + 1}`;
-            message += `${matchLabel}\n`;
-            message += `${teams[m.team1].name} ${m.score1} - ${m.score2} ${
-              teams[m.team2].name
-            }\n`;
+        message += `📊 *STANDINGS*\n\n`;
 
-            if (m.goals && m.goals.length > 0) {
-              const goalScorers = m.goals.filter(
-                (g) => g.type === "goal" && !g.ownGoal
-              );
-              if (goalScorers.length > 0) {
-                message += `⚽ Goals: `;
-                goalScorers.forEach((g, i) => {
-                  message += `${g.scorer}`;
-                  if (g.assist) message += ` (${g.assist})`;
-                  if (i < goalScorers.length - 1) message += ", ";
-                });
-                message += `\n`;
-              }
-
-              const ownGoalScorers = m.goals.filter(
-                (g) => g.type === "goal" && g.ownGoal
-              );
-              if (ownGoalScorers.length > 0) {
-                message += `😬 Own Goals: `;
-                ownGoalScorers.forEach((g, i) => {
-                  message += `${g.scorer}`;
-                  if (i < ownGoalScorers.length - 1) message += ", ";
-                });
-                message += `\n`;
-              }
-
-              const saves = m.goals.filter((g) => g.type === "save");
-              if (saves.length > 0) {
-                message += `🧤 Saves: `;
-                const saveCounts = {};
-                saves.forEach((s) => {
-                  saveCounts[s.scorer] = (saveCounts[s.scorer] || 0) + 1;
-                });
-                const saveEntries = Object.entries(saveCounts);
-                saveEntries.forEach(([keeper, count], i) => {
-                  message += `${keeper} (${count})`;
-                  if (i < saveEntries.length - 1) message += ", ";
-                });
-                message += `\n`;
-              }
-            }
-            message += `\n`;
-          }
+        sorted.forEach((team, idx) => {
+          const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+          message += `${medal} *${teams[team.key].name}*\n`;
+          message += `   Pts: ${team.points} | P: ${team.played} | W: ${team.won} | D: ${team.drawn} | L: ${team.lost}\n`;
+          message += `   GF: ${team.gf} | GA: ${team.ga} | GD: ${
+            team.gd >= 0 ? "+" : ""
+          }${team.gd} | CS: ${team.cs}\n\n`;
         });
 
         message += `━━━━━━━━━━━━━━━━━\n\n`;
+
         message += `Thanks for participating! 🎉⚽\n`;
         message += `See you next time! 👋`;
 
