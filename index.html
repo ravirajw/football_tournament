@@ -4434,18 +4434,23 @@
         const sorted = getSortedStandings();
 
         const final = matches.find((m) => m.round === "final");
-        let winner =
-          final.score1 > final.score2
-            ? final.team1
-            : final.score2 > final.score1
-            ? final.team2
-            : null;
-        let runnerUp =
-          final.score1 > final.score2
-            ? final.team2
-            : final.score2 > final.score1
-            ? final.team1
-            : null;
+        let winner = null;
+        let runnerUp = null;
+
+        if (final) {
+          winner =
+            final.score1 > final.score2
+              ? final.team1
+              : final.score2 > final.score1
+              ? final.team2
+              : null;
+          runnerUp =
+            final.score1 > final.score2
+              ? final.team2
+              : final.score2 > final.score1
+              ? final.team1
+              : null;
+        }
 
         // Fallback for drawn final
         if (!winner) {
