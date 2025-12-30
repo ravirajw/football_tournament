@@ -3556,9 +3556,22 @@
       }
 
       function isTournamentComplete() {
-        // Tournament is complete if the final match exists and is completed
+        // 1. Classic completion: Final match exists and is completed
         const finalMatch = matches.find((m) => m.round === "final");
-        return finalMatch && finalMatch.status === "completed";
+        if (finalMatch && finalMatch.status === "completed") return true;
+
+        // 2. Special case: Final match deleted or not created, but all league matches completed
+        const leagueMatches = matches.filter((m) => m.round !== "final");
+        const allLeagueCompleted =
+          leagueMatches.length > 0 &&
+          leagueMatches.every((m) => m.status === "completed");
+
+        if (!finalMatch && allLeagueCompleted) return true;
+
+        // 3. User manually ended tournament (has ABANDONED matches)
+        if (isTournamentEnded()) return true;
+
+        return false;
       }
 
       function isTournamentEnded() {
@@ -3607,12 +3620,15 @@
         console.log("🔄 Reorganizing page for completed tournament...");
 
         const finalMatch = matches.find((m) => m.round === "final");
-        let winner =
-          finalMatch.score1 > finalMatch.score2
-            ? finalMatch.team1
-            : finalMatch.score2 > finalMatch.score1
-            ? finalMatch.team2
-            : null;
+        let winner = null;
+        if (finalMatch) {
+            winner =
+              finalMatch.score1 > finalMatch.score2
+                ? finalMatch.team1
+                : finalMatch.score2 > finalMatch.score1
+                ? finalMatch.team2
+                : null;
+        }
 
         // Get the main container
         const detailPage = document.getElementById("tournamentDetailPage");
@@ -4454,18 +4470,23 @@
         const sorted = getSortedStandings();
 
         const final = matches.find((m) => m.round === "final");
-        let winner =
-          final.score1 > final.score2
-            ? final.team1
-            : final.score2 > final.score1
-            ? final.team2
-            : null;
-        let runnerUp =
-          final.score1 > final.score2
-            ? final.team2
-            : final.score2 > final.score1
-            ? final.team1
-            : null;
+        let winner = null;
+        let runnerUp = null;
+
+        if (final) {
+          winner =
+            final.score1 > final.score2
+              ? final.team1
+              : final.score2 > final.score1
+              ? final.team2
+              : null;
+          runnerUp =
+            final.score1 > final.score2
+              ? final.team2
+              : final.score2 > final.score1
+              ? final.team1
+              : null;
+        }
 
         // Fallback for drawn final
         if (!winner) {
