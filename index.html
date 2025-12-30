@@ -3571,12 +3571,15 @@
         console.log("🔄 Reorganizing page for completed tournament...");
 
         const finalMatch = matches.find((m) => m.round === "final");
-        let winner =
-          finalMatch.score1 > finalMatch.score2
-            ? finalMatch.team1
-            : finalMatch.score2 > finalMatch.score1
-            ? finalMatch.team2
-            : null;
+        let winner = null;
+        if (finalMatch) {
+            winner =
+              finalMatch.score1 > finalMatch.score2
+                ? finalMatch.team1
+                : finalMatch.score2 > finalMatch.score1
+                ? finalMatch.team2
+                : null;
+        }
 
         // Get the main container
         const detailPage = document.getElementById("tournamentDetailPage");
