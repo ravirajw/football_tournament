@@ -916,6 +916,7 @@
               border-radius: 8px;
               cursor: pointer;
               font-weight: 600;
+              display: none;
             "
             onclick="deleteTournament(currentTournamentId)"
           >
@@ -1340,6 +1341,8 @@
             const deleteBtn = Utils.safeGetElement("deleteTournamentBtn");
             if (deleteBtn) {
               deleteBtn.onclick = () => deleteTournament(currentTournamentId);
+              // Only show deletion button for test tournaments
+              deleteBtn.style.display = isTestMode ? "inline-block" : "none";
             }
             // Hide End Tournament button if tournament has already ended or completed
             const endBtn = Utils.safeGetElement("endTournamentBtn");
@@ -2364,10 +2367,16 @@
                                     <i data-lucide="flag-triangle-right" class="icon-svg"></i>
                                     <span>End Match</span>
                                 </button>
+                                ${
+                                  isTestMode
+                                    ? `
                                 <button class="match-btn-control btn-random-events" onclick="simulateMatch(${match.id})" style="grid-column: 1 / -1;">
                                     <i data-lucide="shuffle" class="icon-svg"></i>
                                     <span>Random Events</span>
                                 </button>
+                                `
+                                    : ""
+                                }
                             `
                                 : ""
                             }
@@ -3825,9 +3834,15 @@
 
           adminActionsSection.innerHTML = `
                     ${endButtonHtml}
+                    ${
+                      isTestMode
+                        ? `
                     <button id="deleteTournamentBtn" style="min-width: 250px; padding: 12px 30px; font-size: 16px; margin: 0 8px 15px 8px; background: #c62828; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="deleteTournament('${currentTournamentId}')">
                         🗑️ Delete Tournament
                     </button>
+                    `
+                        : ""
+                    }
                 `;
           detailPage.appendChild(adminActionsSection);
         }
