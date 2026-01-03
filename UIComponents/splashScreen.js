@@ -1,7 +1,18 @@
 /**
  * Splash Screen Component
  * Displays a beautiful splash screen with the app branding
+ * 
+ * USAGE:
+ * 1. Timed: 
+ *    await showSplashScreen(2000); 
+ *    // Automatically fades out after 2 seconds.
+ * 
+ * 2. Manual Control:
+ *    await showSplashScreen(); // Show for unlimited time
+ *    await initializeApp();    // Do your loading logic
+ *    hideSplashScreen();       // Manually hide it when done
  */
+
 function splashScreenView() {
   const container = document.createElement("div");
   container.id = "splashScreen";
@@ -11,7 +22,7 @@ function splashScreenView() {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--dark-teal);
+    background-color: var(--ink-black);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -33,27 +44,6 @@ function splashScreenView() {
     font-family: var(--font-main);
   `;
 
-  // Icon container
-  const iconContainer = document.createElement("div");
-  iconContainer.style.cssText = `
-    position: relative;
-    margin-bottom: var(--space-32);
-  `;
-
-  // Circular badge with football icon
-  const iconBadge = document.createElement("div");
-  iconBadge.style.cssText = `
-    width: 128px;
-    height: 128px;
-    background-color: var(--beige);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    padding: var(--space-24);
-  `;
-
   // Football icon image
   const footballIcon = document.createElement("img");
   footballIcon.src = "assets/football-icon.png";
@@ -64,19 +54,30 @@ function splashScreenView() {
     object-fit: contain;
   `;
 
+  // Circle containing the football icon
+  const iconBadge = document.createElement("div");
+  iconBadge.style.cssText = `
+    width: 96px;
+    height: 96px;
+    background-color: var(--beige);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-24);
+    margin-bottom: var(--space-48);
+  `;
   iconBadge.appendChild(footballIcon);
-  iconContainer.appendChild(iconBadge);
-  content.appendChild(iconContainer);
 
   // Title - Line 1
   const title1 = document.createElement("div");
   title1.textContent = "South Pune";
   title1.style.cssText = `
     color: var(--beige);
-    font-size: 3em;
+    font-size: 2em;
     font-weight: 600;
-    margin-bottom: var(--space-8);
-    letter-spacing: -0.5px;
+    margin-bottom: var(--space-16);
+    letter-spacing: 1px;
     background: none;
     background-color: transparent;
   `;
@@ -87,41 +88,40 @@ function splashScreenView() {
   title2.style.cssText = `
     color: var(--beige);
     font-size: 1.5em;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     background: none;
     background-color: transparent;
   `;
 
+  content.appendChild(iconBadge);
   content.appendChild(title1);
   content.appendChild(title2);
   container.appendChild(content);
-
-  // Bottom accent line
-  const accentLine = document.createElement("div");
-  accentLine.style.cssText = `
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(to right, transparent, var(--air-force-blue), transparent);
-  `;
-
-  container.appendChild(accentLine);
 
   return container;
 }
 
 /**
  * Show the splash screen
- * @param {number} duration - Duration in milliseconds (default: 2000ms)
- * @returns {Promise} - Resolves when splash screen is hidden
+ * @param {number} duration - Optional duration in milliseconds. If omitted, screen stays until hideSplashScreen() is called.
+ * @returns {Promise} - Resolves immediately if manual, or after fade-out if timed.
+ * 
+ * The app currently uses a fixed duration.
+ * Once called, it manages the entire lifecycle (show → wait → fade → remove).
+ * 
+ * // index.html
+ * await showSplashScreen(2000); // Wait 2 seconds, then it deletes itself
  */
-function showSplashScreen(duration = 2000) {
+function showSplashScreen(duration = null) {
   return new Promise((resolve) => {
     const splash = splashScreenView();
     document.body.appendChild(splash);
+
+    // If no duration provided, resolve immediately so the app can continue initializing
+    if (!duration) {
+      resolve();
+      return;
+    }
 
     // Fade out and remove after duration
     setTimeout(() => {
@@ -137,16 +137,24 @@ function showSplashScreen(duration = 2000) {
 }
 
 /**
- * Hide the splash screen immediately
+ * Method to hide the splash screen manually.
+ * 
+ * Can be used in following case:
+ * If you had a heavy app initialization (e.g., loading a database or checking auth)
+ * and didn't know exactly how long it would take, you would use manual control instead like this:
+ * 
+ * showSplashScreen(); // Show it (no duration passed)
+ * await initializeApp(); // Wait for actual loading
+ * hideSplashScreen(); // Manually hide it when ready
  */
 function hideSplashScreen() {
   const splash = document.getElementById("splashScreen");
   if (splash) {
-    splash.style.transition = "opacity 0.3s ease-out";
+    splash.style.transition = "opacity 0.5s ease-out";
     splash.style.opacity = "0";
 
     setTimeout(() => {
       splash.remove();
-    }, 300);
+    }, 500);
   }
 }
