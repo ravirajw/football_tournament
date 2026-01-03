@@ -1,5 +1,5 @@
 import { CircleDot, Trophy, Shield } from 'lucide-react';
-import footballIcon from 'figma:asset/ee8efaa0c4aa62c6083c0c5afa35e670b64be314.png';
+import footballIcon from '../assets/ee8efaa0c4aa62c6083c0c5afa35e670b64be314.png';
 
 export default function App() {
   return (
