@@ -11,6 +11,10 @@
  *    await showSplashScreen(); // Show for unlimited time
  *    await initializeApp();    // Do your loading logic
  *    hideSplashScreen();       // Manually hide it when done
+ * 
+ * View Hierarchy:
+ * Container -> Content -> IconBadge, Title1, Title2
+ * IconBadge -> FootballIcon
  */
 
 function splashScreenView() {

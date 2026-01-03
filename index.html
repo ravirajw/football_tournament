@@ -5,17 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>South Pune Football Community</title>
     <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/styles.css" />
     <style>
       body {
         margin: 0;
         padding: 0;
-        background-color: var(--dark-teal); /* Prevent white flash */
+        background-color: var(--ink-black); /* Prevent white flash */
         font-family: var(--font-main);
         overflow: hidden;
       }
     </style>
     <!-- Components -->
     <script src="UIComponents/splashScreen.js"></script>
+    <script src="UIComponents/homeTab.js"></script>
   </head>
   <body>
     <script>
@@ -25,6 +27,11 @@
         
         // After splash screen, you can initialize the rest of the app here
         console.log("Splash screen finished. App ready for next steps.");
+        
+        // Launch Home Tab Screen
+        const homeScreen = homeTabView();
+        document.body.appendChild(homeScreen);
+        console.log("HomeTabScreen launched.");
       });
     </script>
   </body>
