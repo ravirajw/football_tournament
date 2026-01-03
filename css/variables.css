@@ -1,0 +1,20 @@
+:root {
+  /* Color Constants */
+  --ink-black: #01161eff;
+  --dark-teal: #124559ff;
+  --air-force-blue: #598392ff;
+  --ash-grey: #aec3b0ff;
+  --beige: #eff6e0ff;
+
+  /* Space Constants */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+
+  /* Font Constants */
+  --font-main: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
