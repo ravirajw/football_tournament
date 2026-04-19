@@ -29,7 +29,7 @@ function whatsappMessageView({
 
   // Title
   const heading = document.createElement("h3");
-  heading.innerHTML = `<span style="font-size: 1.5em">${icon}</span> ${title}`;
+  heading.innerHTML = `<span style="font-size: 1.25em">${icon}</span> ${title}`;
   container.appendChild(heading);
 
   // Subtitle (optional)

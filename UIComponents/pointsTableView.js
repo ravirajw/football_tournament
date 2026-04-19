@@ -18,7 +18,7 @@ function pointsTableView() {
   // Create the table element
   const table = document.createElement("table");
   table.className = "points-table";
-  table.style.minWidth = "500px";
+  table.style.minWidth = "450px";
   table.style.margin = "0";
   table.innerHTML = `
     <thead>
@@ -43,7 +43,7 @@ function pointsTableView() {
 
   // Create tiebreaker info
   const tiebreakerInfo = document.createElement("div");
-  tiebreakerInfo.style.marginTop = "16px";
+  tiebreakerInfo.style.marginTop = "12px";
   tiebreakerInfo.style.fontSize = "0.85em";
   tiebreakerInfo.style.color = "#666";
   tiebreakerInfo.style.wordWrap = "break-word";
@@ -61,8 +61,8 @@ function pointsTableView() {
   // Create qualification note
   const qualificationNote = document.createElement("div");
   qualificationNote.id = "qualificationNote";
-  qualificationNote.style.marginTop = "16px";
-  qualificationNote.style.padding = "16px";
+  qualificationNote.style.marginTop = "12px";
+  qualificationNote.style.padding = "12px";
   qualificationNote.style.background = "#e7f3ff";
   qualificationNote.style.borderLeft = "4px solid #2196f3";
   qualificationNote.style.borderRadius = "4px";

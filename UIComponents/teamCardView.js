@@ -14,14 +14,14 @@ function teamCardView({ teamColor, teamName, inputId, playerListId }) {
   const card = document.createElement("div");
   card.className = `team-card team-${teamColor}`;
   card.style.marginBottom = "0px";
-  card.style.borderRadius = "16px";
-  card.style.padding = "16px";
+  card.style.borderRadius = "12px";
+  card.style.padding = "12px";
   card.style.boxSizing = "border-box";
 
   // Team name heading
   const heading = document.createElement("h3");
   heading.textContent = teamName;
-  heading.style.margin = "0 0 16px 0";
+  heading.style.margin = "0 0 12px 0";
   card.appendChild(heading);
 
   // Player input container
@@ -29,7 +29,7 @@ function teamCardView({ teamColor, teamName, inputId, playerListId }) {
   playerInputDiv.className = "player-input";
   playerInputDiv.style.display = "flex";
   playerInputDiv.style.gap = "8px";
-  playerInputDiv.style.marginBottom = "16px";
+  playerInputDiv.style.marginBottom = "12px";
   playerInputDiv.style.flexWrap = "wrap";
 
   // Input field
@@ -38,11 +38,12 @@ function teamCardView({ teamColor, teamName, inputId, playerListId }) {
   input.id = inputId;
   input.placeholder = "Enter player name";
   input.style.flex = "1";
-  input.style.minWidth = "150px";
-  input.style.padding = "8px 12px";
-  input.style.borderRadius = "8px";
+  input.style.minWidth = "0";
+  input.style.padding = "12px";
+  input.style.borderRadius = "12px";
   input.style.border = "1px solid #ddd";
-  input.style.fontSize = "14px";
+  input.style.fontSize = "16px";
+  input.style.minHeight = "44px";
   playerInputDiv.appendChild(input);
 
   // Add button
@@ -54,8 +55,10 @@ function teamCardView({ teamColor, teamName, inputId, playerListId }) {
     addPlayer(teamColor);
   };
   button.style.padding = "12px 12px";
-  button.style.borderRadius = "8px";
+  button.style.borderRadius = "12px";
   button.style.whiteSpace = "nowrap";
+  button.style.minWidth = "44px";
+  button.style.minHeight = "44px";
   playerInputDiv.appendChild(button);
 
   card.appendChild(playerInputDiv);

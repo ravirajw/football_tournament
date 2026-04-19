@@ -10,11 +10,11 @@
  */
 function containerView({ title, content }) {
   const container = document.createElement("div");
-  container.style.borderRadius = "16px";
-  container.style.padding = "16px";
+  container.style.borderRadius = "12px";
+  container.style.padding = "12px";
   container.style.background = "#eceff1";
   container.style.boxSizing = "border-box";
-  container.style.margin = "16px 0";
+  container.style.margin = "12px 0";
   container.style.boxShadow = "4px 4px 8px rgba(0, 0, 0, 0.1)";
   container.style.overflow = "hidden"; // Prevent content from bleeding outside
 
@@ -22,7 +22,7 @@ function containerView({ title, content }) {
   const titleElem = document.createElement("div");
   titleElem.textContent = title;
   titleElem.style.fontWeight = "bold";
-  titleElem.style.fontSize = "1.5em";
+  titleElem.style.fontSize = "1.25em";
   titleElem.style.color = "#667eea";
   titleElem.style.marginBottom = "8px";
 
@@ -31,7 +31,7 @@ function containerView({ title, content }) {
   separator.style.height = "2px";
   separator.style.background = "#667eea";
   separator.style.borderRadius = "1px";
-  separator.style.marginBottom = "16px";
+  separator.style.marginBottom = "12px";
 
   // Main content
   const contentElem = document.createElement("div");

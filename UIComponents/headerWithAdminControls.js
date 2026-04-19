@@ -6,13 +6,13 @@ function headerWithAdminControls() {
   headerDiv.style.display = "flex";
   headerDiv.style.justifyContent = "space-between";
   headerDiv.style.alignItems = "center";
-  headerDiv.style.marginBottom = "16px";
+  headerDiv.style.marginBottom = "12px";
   headerDiv.style.flexWrap = "wrap";
   headerDiv.style.gap = "8px";
 
   // Date and Status section
   const dateDiv = document.createElement("div");
-  dateDiv.style.fontSize = "0.8em";
+  dateDiv.style.fontSize = "0.85em";
   dateDiv.style.fontWeight = "normal";
   dateDiv.style.color = "#666";
   dateDiv.style.display = "flex";
@@ -28,18 +28,18 @@ function headerWithAdminControls() {
   const adminLoginDiv = document.createElement("div");
   adminLoginDiv.id = "adminControls";
   adminLoginDiv.style.display = "none";
-  adminLoginDiv.style.fontSize = "0.8em";
+  adminLoginDiv.style.fontSize = "0.85em";
   adminLoginDiv.style.fontWeight = "normal";
-  adminLoginDiv.innerHTML = `<button class="btn-primary" onclick="showAdminLogin()" style="padding: 8px 16px">🔐 Admin Login</button>`;
+  adminLoginDiv.innerHTML = `<button class="btn-primary" onclick="showAdminLogin()" style="padding: 10px 16px; min-height: 44px">🔐 Admin Login</button>`;
   headerDiv.appendChild(adminLoginDiv);
 
   // Admin logout button
   const adminLogoutDiv = document.createElement("div");
   adminLogoutDiv.id = "adminStatus";
   adminLogoutDiv.style.display = "none";
-  adminLogoutDiv.style.fontSize = "0.8em";
+  adminLogoutDiv.style.fontSize = "0.85em";
   adminLogoutDiv.style.fontWeight = "normal";
-  adminLogoutDiv.innerHTML = `<button class="btn-danger" onclick="logoutAdmin()" style="padding: 8px 16px">🔐 Admin Logout</button>`;
+  adminLogoutDiv.innerHTML = `<button class="btn-danger" onclick="logoutAdmin()" style="padding: 10px 16px; min-height: 44px">🔐 Admin Logout</button>`;
   headerDiv.appendChild(adminLogoutDiv);
 
   return headerDiv;

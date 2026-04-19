@@ -2,236 +2,223 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Football Tournament Manager</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      /* ===== DESIGN TOKENS ===== */
+      :root {
+        --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --font-size-xs: 12px;
+        --font-size-sm: 14px;
+        --font-size-base: 16px;
+        --font-size-lg: 18px;
+        --font-size-xl: 20px;
+        --font-size-2xl: 24px;
+        --font-size-3xl: 28px;
+        --space-xs: 4px;
+        --space-sm: 8px;
+        --space-md: 12px;
+        --space-lg: 16px;
+        --space-xl: 20px;
+        --space-2xl: 24px;
+        --container-padding: 12px;
+        --card-padding: 12px;
+        --card-radius: 12px;
+        --section-gap: 16px;
+        --tap-target-min: 44px;
+        --color-primary: #667eea;
+        --color-primary-dark: #5568d3;
+        --color-success: #28a745;
+        --color-danger: #dc3545;
+        --color-warning: #ffc107;
+        --color-text: #333;
+        --color-text-secondary: #666;
+        --color-text-muted: #999;
+        --color-bg: #f8f9fa;
+        --color-white: #ffffff;
       }
+
+      /* ===== RESET & BASE ===== */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
 
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: var(--font-family);
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
-        padding: 16px;
+        padding: var(--space-sm);
+        font-size: var(--font-size-base);
       }
 
+      /* ===== CONTAINER ===== */
       .container {
-        max-width: 1200px;
+        width: 100%;
         margin: 0 auto;
-        background: white;
-        border-radius: 16px;
-        padding: 16px;
+        background: var(--color-white);
+        border-radius: var(--card-radius);
+        padding: var(--container-padding);
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       }
 
+      /* ===== TYPOGRAPHY ===== */
       h1 {
         text-align: center;
-        color: #333;
-        margin-bottom: 30px;
-        font-size: 2.5em;
+        color: var(--color-text);
+        margin-bottom: var(--space-xl);
+        font-size: var(--font-size-2xl);
       }
 
+      /* ===== SECTIONS ===== */
       .section {
-        margin-bottom: 30px;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
+        margin-bottom: var(--section-gap);
+        padding: var(--card-padding);
+        background: var(--color-bg);
+        border-radius: var(--card-radius);
+        overflow: hidden;
       }
 
       .section h2 {
-        color: #667eea;
-        margin-bottom: 15px;
-        border-bottom: 3px solid #667eea;
-        padding-bottom: 10px;
+        color: var(--color-primary);
+        margin-bottom: var(--space-md);
+        border-bottom: 3px solid var(--color-primary);
+        padding-bottom: var(--space-sm);
+        font-size: var(--font-size-xl);
       }
 
+      /* ===== TEAM SETUP ===== */
       .team-setup {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
       }
 
+      /* ===== TEAM CARDS ===== */
       .team-card {
-        padding: 15px;
-        border-radius: 10px;
+        padding: var(--card-padding);
+        border-radius: var(--card-radius);
         color: white;
       }
 
-      .team-red {
-        background: linear-gradient(135deg, #d32f2f, #c62828);
-      }
-
-      .team-black {
-        background: linear-gradient(135deg, #424242, #212121);
-      }
-
-      .team-white {
-        background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
-        color: #333;
-      }
+      .team-red { background: linear-gradient(135deg, #d32f2f, #c62828); }
+      .team-black { background: linear-gradient(135deg, #424242, #212121); }
+      .team-white { background: linear-gradient(135deg, #bdbdbd, #9e9e9e); color: var(--color-text); }
 
       .team-card h3 {
-        margin-bottom: 15px;
-        font-size: 1.5em;
+        margin-bottom: var(--space-md);
+        font-size: var(--font-size-lg);
       }
 
+      /* ===== INPUTS ===== */
       .player-input {
         display: flex;
-        gap: 10px;
-        margin-bottom: 10px;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
       }
 
       input[type="text"] {
         flex: 1;
-        padding: 10px;
+        padding: var(--space-md);
         border: none;
-        border-radius: 5px;
-        font-size: 14px;
+        border-radius: var(--card-radius);
+        font-size: var(--font-size-base);
+        min-height: var(--tap-target-min);
       }
 
+      /* ===== BUTTONS ===== */
       button {
-        padding: 10px 20px;
+        padding: var(--space-md) var(--space-lg);
         border: none;
-        border-radius: 5px;
+        border-radius: var(--card-radius);
         cursor: pointer;
-        font-size: 14px;
+        font-size: var(--font-size-base);
         font-weight: bold;
-        transition: all 0.3s;
+        min-height: var(--tap-target-min);
+        transition: opacity 0.15s, transform 0.15s;
+        -webkit-tap-highlight-color: transparent;
       }
 
-      .btn-primary {
-        background: #667eea;
-        color: white;
-      }
+      .btn-primary { background: var(--color-primary); color: white; }
+      .btn-primary:active { background: var(--color-primary-dark); transform: scale(0.97); }
 
-      .btn-primary:hover {
-        background: #5568d3;
-        transform: translateY(-2px);
-      }
+      .btn-success { background: var(--color-success); color: white; }
+      .btn-success:active { background: #218839; transform: scale(0.97); }
 
-      .btn-success {
-        background: #28a745;
-        color: white;
-      }
+      .btn-danger { background: var(--color-danger); color: white; }
+      .btn-danger:active { background: #c82333; transform: scale(0.97); }
 
-      .btn-success:hover {
-        background: #218839;
-        transform: translateY(-2px);
-      }
+      .btn-warning { background: var(--color-warning); color: var(--color-text); }
 
-      .btn-danger {
-        background: #dc3545;
-        color: white;
-      }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-      .btn-danger:hover {
-        background: #c82333;
-        transform: translateY(-2px);
-      }
-
-      .btn-warning {
-        background: #ffc107;
-        color: #333;
-      }
-
-      /* Match Control Button Styles - Only for match action buttons */
+      /* ===== MATCH ACTION BUTTONS ===== */
       .match-action-btn {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 20px 10px;
+        padding: var(--space-md) var(--space-sm);
         border: none;
-        border-radius: 8px;
+        border-radius: var(--card-radius);
         cursor: pointer;
-        font-size: 14px;
+        font-size: var(--font-size-sm);
         font-weight: 600;
-        transition: all 0.3s ease;
+        transition: opacity 0.15s, transform 0.15s;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         line-height: 1.3;
         text-align: center;
         color: white;
+        -webkit-tap-highlight-color: transparent;
       }
 
-      .match-action-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      }
+      .match-action-btn:active { transform: scale(0.95); opacity: 0.9; }
+      .match-btn-goal { background-color: var(--color-success); }
+      .match-btn-own-goal { background-color: #9c27b0; }
+      .match-btn-control { background-color: #1976d2; }
 
-      .match-action-btn:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      /* Add Goal - Green */
-      .match-btn-goal {
-        background-color: #28a745;
-      }
-
-      .match-btn-goal:hover {
-        background-color: #218838;
-      }
-
-      /* Add Own Goal - Purple */
-      .match-btn-own-goal {
-        background-color: #9c27b0;
-      }
-
-      .match-btn-own-goal:hover {
-        background-color: #7b1fa2;
-      }
-
-      /* Match Control Buttons - Blue */
-      .match-btn-control {
-        background-color: #1976d2;
-      }
-
-      .match-btn-control:hover {
-        background-color: #1565c0;
-      }
-
-      /* Full width match buttons */
       .match-btn-full {
         flex-direction: row;
-        gap: 10px;
-        padding: 15px 10px;
+        gap: var(--space-sm);
+        padding: var(--space-md) var(--space-sm);
       }
 
       .match-action-btn .icon-large {
-        font-size: 24px;
-        margin-bottom: 6px;
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--space-xs);
       }
 
-      .player-list {
-        margin-top: 16px;
-      }
+      /* ===== PLAYER LIST ===== */
+      .player-list { margin-top: var(--space-lg); }
 
       .player-item {
         background: rgba(255, 255, 255, 0.2);
-        padding: 8px;
-        margin: 4px 0;
-        border-radius: 4px;
+        padding: var(--space-sm);
+        margin: var(--space-xs) 0;
+        border-radius: var(--space-xs);
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
 
-      .team-white .player-item {
-        background: rgba(0, 0, 0, 0.1);
+      .team-white .player-item { background: rgba(0, 0, 0, 0.1); }
+
+      .remove-btn {
+        background: rgba(220, 53, 69, 0.8);
+        color: white;
+        padding: var(--space-sm);
+        font-size: var(--font-size-xs);
+        min-width: var(--tap-target-min);
+        min-height: var(--tap-target-min);
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
-      .matches-grid {
-        display: grid;
-        gap: 15px;
-      }
+      /* ===== MATCHES ===== */
+      .matches-grid { display: grid; gap: var(--space-md); }
 
       .match-card {
         background: white;
-        padding: 20px;
-        border-radius: 10px;
+        padding: var(--space-lg);
+        border-radius: var(--card-radius);
         border: 2px solid #e0e0e0;
       }
 
@@ -239,162 +226,124 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 15px;
+        margin-bottom: var(--space-md);
         flex-wrap: wrap;
-        gap: 10px;
+        gap: var(--space-sm);
       }
 
-      .match-header-title {
-        font-weight: bold;
-      }
+      .match-header-title { font-weight: bold; font-size: var(--font-size-base); }
+      .match-header-status { display: flex; align-items: center; gap: var(--space-sm); }
 
-      .match-header-status {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      /* New scoreboard layout */
-      .match-scoreboard {
-        margin: 15px 0;
-      }
+      /* ===== SCOREBOARD ===== */
+      .match-scoreboard { margin: var(--space-md) 0; }
 
       .team-score-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 0;
+        padding: var(--space-md) 0;
         border-bottom: 1px solid #f0f0f0;
       }
+      .team-score-row:last-child { border-bottom: none; }
 
-      .team-score-row:last-child {
-        border-bottom: none;
-      }
-
-      .team-info {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        flex: 1;
-      }
+      .team-info { display: flex; flex-direction: column; gap: var(--space-xs); flex: 1; }
 
       .team-name {
-        font-size: 1.3em;
+        font-size: 1.1em;
         font-weight: bold;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--space-sm);
       }
 
       .team-keeper {
-        font-size: 0.9em;
-        color: #666;
-        padding-left: 8px;
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
+        padding-left: var(--space-sm);
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: var(--space-xs);
       }
 
       .team-score {
-        font-size: 2em;
+        font-size: var(--font-size-3xl);
         font-weight: bold;
-        color: #667eea;
+        color: var(--color-primary);
         min-width: 50px;
         text-align: right;
       }
 
-      /* Legacy styles for backward compatibility */
+      /* Legacy */
       .match-teams {
         display: flex;
         justify-content: space-around;
         align-items: center;
-        margin: 20px 0;
-        font-size: 1.5em;
+        margin: var(--space-lg) 0;
+        font-size: 1.2em;
         font-weight: bold;
       }
 
-      .score {
-        font-size: 2em;
-        color: #667eea;
-      }
+      .score { font-size: var(--font-size-3xl); color: var(--color-primary); }
 
       .match-controls {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 10px;
-        margin-top: 15px;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-sm);
+        margin-top: var(--space-md);
       }
 
-      @media (max-width: 480px) {
-        .match-controls {
-          grid-template-columns: 1fr 1fr;
-        }
+      .timer {
+        font-size: var(--font-size-3xl);
+        font-weight: bold;
+        color: var(--color-primary);
+        text-align: center;
+        margin: var(--space-sm) 0;
       }
 
+      /* ===== GOAL LOG ===== */
       .goal-section {
-        margin-top: 15px;
-        padding: 15px;
+        margin-top: var(--space-md);
+        padding: var(--space-md);
         background: #f0f0f0;
-        border-radius: 8px;
+        border-radius: var(--card-radius);
       }
 
+      .goal-log { margin-top: var(--space-sm); max-height: 150px; overflow-y: auto; }
+
+      .goal-item {
+        padding: var(--space-xs);
+        margin: 3px 0;
+        background: #e8f5e9;
+        border-radius: var(--space-xs);
+        font-size: var(--font-size-sm);
+      }
+      .save-item { background: #e3f2fd; }
+      .own-goal { background: #ffebee; }
+
+      /* ===== POINTS TABLE ===== */
       .points-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 20px;
+        margin-top: var(--space-lg);
       }
 
       .points-table th,
       .points-table td {
-        padding: 12px;
+        padding: var(--space-sm) var(--space-xs);
         text-align: left;
         border-bottom: 1px solid #ddd;
+        font-size: var(--font-size-sm);
       }
 
       .points-table th {
-        background: #667eea;
+        background: var(--color-primary);
         color: white;
         font-weight: bold;
       }
 
-      .points-table tr:hover {
-        background: #f5f5f5;
-      }
+      .points-table tr:active { background: #f5f5f5; }
 
-      .timer {
-        font-size: 2em;
-        font-weight: bold;
-        color: #667eea;
-        text-align: center;
-        margin: 10px 0;
-      }
-
-      .goal-log {
-        margin-top: 10px;
-        max-height: 150px;
-        overflow-y: auto;
-      }
-
-      .goal-item {
-        padding: 5px;
-        margin: 3px 0;
-        background: #e8f5e9;
-        border-radius: 5px;
-        font-size: 0.9em;
-      }
-
-      .save-item {
-        background: #e3f2fd;
-      }
-
-      .own-goal {
-        background: #ffebee;
-      }
-
-      .hidden {
-        display: none;
-      }
-
+      /* ===== SPECIAL MATCHES ===== */
       .final-match {
         border: 3px solid gold;
         background: linear-gradient(135deg, #fff9c4, #fff59d);
@@ -402,77 +351,70 @@
 
       .winner-announcement {
         text-align: center;
-        padding: 30px;
+        padding: var(--space-xl);
         background: linear-gradient(135deg, #ffd700, #ffed4e);
-        border-radius: 15px;
-        margin: 20px 0;
+        border-radius: var(--card-radius);
+        margin: var(--space-lg) 0;
       }
 
       .winner-announcement h2 {
-        color: #333;
-        font-size: 2.5em;
-        margin-bottom: 10px;
+        color: var(--color-text);
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--space-sm);
       }
 
-      .remove-btn {
-        background: rgba(220, 53, 69, 0.8);
-        color: white;
-        padding: 4px 8px;
-        font-size: 12px;
-      }
-
+      /* ===== TIEBREAKER ===== */
       .tiebreaker-modal {
         background: #fff3cd;
-        border: 2px solid #ffc107;
-        padding: 20px;
-        border-radius: 10px;
-        margin: 20px 0;
+        border: 2px solid var(--color-warning);
+        padding: var(--space-lg);
+        border-radius: var(--card-radius);
+        margin: var(--space-lg) 0;
       }
 
-      .tiebreaker-modal h3 {
-        color: #856404;
-        margin-bottom: 15px;
-      }
+      .tiebreaker-modal h3 { color: #856404; margin-bottom: var(--space-md); }
 
       .team-option {
-        padding: 15px;
-        margin: 10px 0;
-        border-radius: 8px;
+        padding: var(--space-md);
+        margin: var(--space-sm) 0;
+        border-radius: var(--card-radius);
         cursor: pointer;
         border: 2px solid #dee2e6;
-        transition: all 0.3s;
+        transition: all 0.15s;
         font-weight: bold;
+        min-height: var(--tap-target-min);
       }
 
-      .team-option:hover {
-        border-color: #667eea;
-        background: #f8f9fa;
-        transform: translateX(5px);
+      .team-option:active {
+        border-color: var(--color-primary);
+        background: var(--color-bg);
+        transform: scale(0.98);
       }
 
+      /* ===== WHATSAPP MSG ===== */
       .whatsapp-message-box {
         background: #e7f3e7;
         border: 2px solid #25d366;
-        border-radius: 10px;
-        padding: 20px;
-        margin: 20px 0;
+        border-radius: var(--card-radius);
+        padding: var(--space-lg);
+        margin: var(--space-lg) 0;
       }
 
       .whatsapp-message-box h3 {
         color: #075e54;
-        margin-bottom: 15px;
+        margin-bottom: var(--space-md);
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: var(--space-sm);
       }
 
       .message-content {
         background: white;
-        padding: 15px;
-        border-radius: 8px;
-        font-family: monospace;
+        padding: var(--space-md);
+        border-radius: var(--card-radius);
+        font-family: var(--font-family);
         white-space: pre-wrap;
-        font-size: 0.9em;
+        font-size: var(--font-size-sm);
         max-height: 400px;
         overflow-y: auto;
         border: 1px solid #ddd;
@@ -482,20 +424,19 @@
       .copy-btn {
         background: #25d366;
         color: white;
-        padding: 12px 24px;
-        margin-top: 10px;
-        border-radius: 8px;
-        font-size: 16px;
+        padding: var(--space-md) var(--space-xl);
+        margin-top: var(--space-sm);
+        border-radius: var(--card-radius);
+        font-size: var(--font-size-base);
         cursor: pointer;
         border: none;
-        transition: all 0.3s;
+        transition: opacity 0.15s, transform 0.15s;
+        min-height: var(--tap-target-min);
       }
 
-      .copy-btn:hover {
-        background: #128c7e;
-        transform: translateY(-2px);
-      }
+      .copy-btn:active { background: #128c7e; transform: scale(0.97); }
 
+      /* ===== MODAL ===== */
       .modal {
         display: none;
         position: fixed;
@@ -511,28 +452,28 @@
 
       .modal-content {
         background: white;
-        padding: 30px;
-        border-radius: 15px;
+        padding: var(--space-lg);
+        border-radius: var(--card-radius);
         max-width: 500px;
-        width: 90%;
+        width: calc(100% - 32px);
+        max-height: 85vh;
+        overflow-y: auto;
       }
 
-      .keeper-selection {
-        margin: 15px 0;
-      }
-
-      .keeper-selection h3 {
-        margin-bottom: 10px;
-        font-size: 1.2em;
-      }
+      .keeper-selection { margin: var(--space-md) 0; }
+      .keeper-selection h3 { margin-bottom: var(--space-sm); font-size: 1.1em; }
 
       .keeper-info {
         display: flex;
         justify-content: space-around;
-        margin: 10px 0;
-        font-size: 0.9em;
-        color: #666;
+        margin: var(--space-sm) 0;
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
       }
+
+      /* ===== UTILITY ===== */
+      .hidden { display: none; }
+
     </style>
   </head>
 
@@ -589,7 +530,7 @@
             justify-content: space-between;
             align-items: center;
             color: #999;
-            font-size: 0.75em;
+            font-size: var(--font-size-xs);
             border-top: 1px solid #eee;
           "
         >
@@ -628,7 +569,7 @@
             justify-content: space-between;
             align-items: center;
             color: #999;
-            font-size: 0.75em;
+            font-size: var(--font-size-xs);
             border-top: 1px solid #eee;
           "
         >
@@ -650,7 +591,7 @@
             justify-content: space-between;
             align-items: center;
             color: #999;
-            font-size: 0.75em;
+            font-size: var(--font-size-xs);
             border-top: 1px solid #eee;
           "
         >
@@ -711,9 +652,9 @@
           <h2>Leaderboard</h2>
           <div
             style="
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-              gap: 20px;
+              display: flex;
+              flex-direction: column;
+              gap: 16px;
             "
           >
             <div
@@ -857,10 +798,10 @@
           <button
             id="endTournamentBtn"
             style="
-              min-width: 250px;
-              padding: 12px 30px;
+              width: 100%;
+              padding: 12px 16px;
               font-size: 16px;
-              margin: 0 8px 15px 8px;
+              margin: 0 0 12px 0;
               background: #ff9800;
               color: white;
               border: none;
@@ -875,10 +816,10 @@
           <button
             id="deleteTournamentBtn"
             style="
-              min-width: 250px;
-              padding: 12px 30px;
+              width: 100%;
+              padding: 12px 16px;
               font-size: 16px;
-              margin: 0 8px 15px 8px;
+              margin: 0 0 12px 0;
               background: #c62828;
               color: white;
               border: none;
@@ -901,7 +842,7 @@
             justify-content: space-between;
             align-items: center;
             color: #999;
-            font-size: 0.75em;
+            font-size: var(--font-size-xs);
             border-top: 1px solid #eee;
           "
         >
@@ -3692,7 +3633,7 @@
         leaderboardSection.id = "leaderboardSection";
         leaderboardSection.innerHTML = `
                 <h2>Leaderboard</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
                     <div style="background: #fff; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107;">
                         <h3 style="color: #ffc107; margin-bottom: 10px;">⚽ Top Scorers</h3>
                         <div id="topScorers" style="max-height: 300px; overflow-y: auto;"></div>
@@ -3791,7 +3732,7 @@
           const endButtonHtml = tournamentEndedOrComplete
             ? ""
             : `
-                    <button id="endTournamentBtn" style="min-width: 250px; padding: 12px 30px; font-size: 16px; margin: 0 8px 15px 8px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="endTournament()">
+                    <button id="endTournamentBtn" style="width: 100%; padding: 12px 16px; font-size: 16px; margin: 0 0 12px 0; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="endTournament()">
                         🏁 End Tournament
                     </button>
           `;
@@ -3801,7 +3742,7 @@
                     ${
                       isTestMode
                         ? `
-                    <button id="deleteTournamentBtn" style="min-width: 250px; padding: 12px 30px; font-size: 16px; margin: 0 8px 15px 8px; background: #c62828; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="deleteTournament('${currentTournamentId}')">
+                    <button id="deleteTournamentBtn" style="width: 100%; padding: 12px 16px; font-size: 16px; margin: 0 0 12px 0; background: #c62828; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="deleteTournament('${currentTournamentId}')">
                         🗑️ Delete Tournament
                     </button>
                     `
@@ -3814,7 +3755,7 @@
         // Footer (version and UTC)
         const footer = document.createElement("div");
         footer.style.cssText =
-          "margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: 0.75em; border-top: 1px solid #eee;";
+          "margin-top: 30px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #999; font-size: var(--font-size-xs); border-top: 1px solid #eee;";
         footer.innerHTML = `
                 <span class="app-version">${CONFIG.APP_VERSION}</span>
                 <span>UTC: <span class="deviceUTC">--</span></span>

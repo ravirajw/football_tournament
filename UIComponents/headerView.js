@@ -29,7 +29,7 @@ function headerView(options = {}) {
     leftEmoji = "⚽",
     title: titleText = "Football Tournament Manager",
     rightEmoji = "⚽",
-    fontSize: baseFontSize = 24,
+    fontSize: baseFontSize = 20,
     textColor = "#000",
     textShadow = "none",
     letterSpacing = "normal",
@@ -44,8 +44,8 @@ function headerView(options = {}) {
   container.style.alignItems = "center";
   container.style.justifyContent = "center";
   container.style.width = "100%";
-  container.style.margin = "16px 0";
-  container.style.padding = "0 16px";
+  container.style.margin = "12px 0";
+  container.style.padding = "0 8px";
 
   // Left spacer for centering
   const leftSpacer = document.createElement("div");
@@ -55,7 +55,7 @@ function headerView(options = {}) {
   const leftIcon = document.createElement("span");
   leftIcon.textContent = leftEmoji;
   leftIcon.style.fontSize = baseFontSize + "px";
-  leftIcon.style.marginRight = "16px";
+  leftIcon.style.marginRight = "8px";
 
   // Title
   const title = document.createElement("div");
@@ -77,7 +77,7 @@ function headerView(options = {}) {
   // Dynamic font sizing for mobile - prioritize wrapping over shrinking
   const adjustFontSize = () => {
     const containerWidth = container.offsetWidth;
-    const availableWidth = containerWidth - 150; // Account for icons, margins, and spacers
+    const availableWidth = containerWidth - 100; // Account for icons, margins, and spacers
 
     // Reset to base font size
     let fontSize = baseFontSize;
@@ -102,7 +102,7 @@ function headerView(options = {}) {
   const rightIcon = document.createElement("span");
   rightIcon.textContent = rightEmoji;
   rightIcon.style.fontSize = baseFontSize + "px";
-  rightIcon.style.marginLeft = "16px";
+  rightIcon.style.marginLeft = "8px";
 
   // Right spacer for centering
   const rightSpacer = document.createElement("div");
@@ -117,7 +117,7 @@ function headerView(options = {}) {
   // Add resize listener for dynamic font adjustment
   window.addEventListener("resize", () => {
     const containerWidth = container.offsetWidth;
-    const availableWidth = containerWidth - 150; // Account for icons, margins, and spacers
+    const availableWidth = containerWidth - 100; // Account for icons, margins, and spacers
 
     // Reset to base font size
     let fontSize = baseFontSize;

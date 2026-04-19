@@ -13,8 +13,8 @@ function createTournamentWinnerBanner({ winnerName, winnerColor }) {
   banner.id = "winnerSection";
   banner.style.cssText = `
     background: linear-gradient(135deg, #f4d03f 0%, #f39c12 100%);
-    padding: 16px;
-    border-radius: 16px;
+    padding: 12px;
+    border-radius: 12px;
     margin-bottom: 16px;
     box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
   `;
@@ -44,12 +44,12 @@ function createTournamentWinnerBanner({ winnerName, winnerColor }) {
     leftEmoji: teamEmoji,
     title: `${winnerName.toUpperCase()} TEAM`,
     rightEmoji: teamEmoji,
-    fontSize: 32,
+    fontSize: 24,
     textColor: winnerColor,
     textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
     letterSpacing: "2px",
   });
-  teamNameContainer.style.margin = "32px 0 32px 0";
+  teamNameContainer.style.margin = "20px 0 20px 0";
 
   // Use headerView for congratulations with styling
   const congratsContainer = headerView({

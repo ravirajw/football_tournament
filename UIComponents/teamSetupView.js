@@ -10,10 +10,8 @@ function teamSetupView() {
   const teamSetupDiv = document.createElement("div");
   teamSetupDiv.className = "team-setup";
   teamSetupDiv.style.display = "flex";
-  teamSetupDiv.style.flexDirection = "row";
-  teamSetupDiv.style.flexWrap = "wrap";
-  teamSetupDiv.style.gap = "16px";
-  teamSetupDiv.style.justifyContent = "center";
+  teamSetupDiv.style.flexDirection = "column";
+  teamSetupDiv.style.gap = "12px";
 
   // Create team cards using teamCardView
   const redCard = teamCardView({
@@ -22,8 +20,7 @@ function teamSetupView() {
     inputId: "redPlayerInput",
     playerListId: "redPlayers",
   });
-  redCard.style.flex = "1";
-  redCard.style.minWidth = "150px";
+  redCard.style.width = "100%";
   teamSetupDiv.appendChild(redCard);
 
   const blackCard = teamCardView({
@@ -32,8 +29,7 @@ function teamSetupView() {
     inputId: "blackPlayerInput",
     playerListId: "blackPlayers",
   });
-  blackCard.style.flex = "1";
-  blackCard.style.minWidth = "150px";
+  blackCard.style.width = "100%";
   teamSetupDiv.appendChild(blackCard);
 
   const whiteCard = teamCardView({
@@ -42,24 +38,20 @@ function teamSetupView() {
     inputId: "whitePlayerInput",
     playerListId: "whitePlayers",
   });
-  whiteCard.style.flex = "1";
-  whiteCard.style.minWidth = "150px";
+  whiteCard.style.width = "100%";
   teamSetupDiv.appendChild(whiteCard);
 
   // Buttons container (responsive - adapts to available space)
   const buttonsDiv = document.createElement("div");
   buttonsDiv.style.display = "flex";
-  buttonsDiv.style.flexDirection = "row";
-  buttonsDiv.style.justifyContent = "center";
-  buttonsDiv.style.alignItems = "center";
+  buttonsDiv.style.flexDirection = "column";
   buttonsDiv.style.gap = "8px";
-  buttonsDiv.style.marginTop = "16px";
-  buttonsDiv.style.flexWrap = "wrap"; // Wrap to vertical on small screens
+  buttonsDiv.style.marginTop = "12px";
   buttonsDiv.innerHTML = `
-    <button class="btn-primary" style="flex: 1; min-width: 150px; padding: 16px 40px; font-size: 18px" onclick="addTestPlayers()">
+    <button class="btn-primary" style="width: 100%; padding: 16px; font-size: 18px" onclick="addTestPlayers()">
       Add Test Players
     </button>
-    <button class="btn-success" style="flex: 1; min-width: 150px; padding: 16px 40px; font-size: 18px" onclick="startTournament()">
+    <button class="btn-success" style="width: 100%; padding: 16px; font-size: 18px" onclick="startTournament()">
       Start Tournament
     </button>
   `;
