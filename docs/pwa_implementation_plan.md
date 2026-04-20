@@ -1,5 +1,8 @@
 # Progressive Web App (PWA) Implementation Plan
 
+> **PWA Preview Link:** [https://football-tournament-12d9e--pwa-test-lgvw0dhl.web.app](https://football-tournament-12d9e--pwa-test-lgvw0dhl.web.app)  
+> **Expires:** 2026-04-27 17:06:19
+
 ## Goal Description
 Convert the "Football Tournament Manager" into a Progressive Web App (PWA). This will allow users to install the app directly on their mobile home screens, use it seamlessly without an internet connection, and enjoy a faster, native app-like experience.
 
