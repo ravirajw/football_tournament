@@ -21,6 +21,16 @@ firebase.initializeApp(firebaseConfig);
 // Initialize Firestore
 const db = firebase.firestore();
 
+// Enable offline persistence
+db.enablePersistence()
+  .catch((err) => {
+    if (err.code == 'failed-precondition') {
+      console.log("Multiple tabs open, persistence can only be enabled in one tab at a a time.");
+    } else if (err.code == 'unimplemented') {
+      console.log("The current browser does not support all of the features required to enable persistence");
+    }
+  });
+
 // Collection reference
 const tournamentsCollection = db.collection("tournaments");
 
