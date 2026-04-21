@@ -1,8 +1,10 @@
-const CACHE_NAME = '9to11-cache-v1';
+const CACHE_NAME = '9to11-cache-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/assets/icons/icon-192x192.png',
+  '/assets/icons/icon-512x512.png',
   '/js/config.js',
   '/js/utils.js',
   '/js/tournamentSummary.js',
@@ -21,14 +23,18 @@ const ASSETS_TO_CACHE = [
   '/UIComponents/keeperModal.js',
   '/UIComponents/tournamentWinnerBanner.js',
   '/UIComponents/modalView.js',
-  '/UIComponents/adminLoginModal.js'
+  '/UIComponents/adminLoginModal.js',
+  'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js'
 ];
 
-// Install event: cache core assets
+// Install event: pre-cache core assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('Opened cache');
+      // Use cache.addAll, but wrap in individual try-catches if needed, 
+      // though addAll is fine since these are reliable URLs.
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
@@ -52,28 +58,39 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event: Network First, fallback to Cache
+// Fetch event: Stale-While-Revalidate strategy
 self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
-  // Don't intercept Firebase requests or other external APIs unless we want them cached
-  // Here we use Network First strategy for everything
+  // EXPLICITLY IGNORE FIRESTORE API CALLS
+  // Firestore handles its own offline persistence and caching. 
+  // Intercepting it in the SW can cause sync conflicts and bugs.
+  if (event.request.url.includes('firestore.googleapis.com')) {
+    return; // Pass through to network natively
+  }
+
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        // If the fetch is successful, cache the new response
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+    caches.match(event.request).then((cachedResponse) => {
+      // The fetch promise runs in the background to update the cache
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        // Only cache valid responses (status 200). 
+        // Note: For opaque responses (status 0), we could cache them, but it's safer to only cache 200s for known assets.
+        // Firebase CDN returns proper CORS headers, so status will be 200.
+        if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
         }
         return networkResponse;
-      })
-      .catch(() => {
-        // If network fails, try to return from cache
-        return caches.match(event.request);
-      })
+      }).catch((err) => {
+        console.log('Network request failed, relying on cache if available:', err);
+      });
+
+      // Return the cached response IMMEDIATELY if we have it (instant loading).
+      // Otherwise, wait for the network response.
+      return cachedResponse || fetchPromise;
+    })
   );
 });

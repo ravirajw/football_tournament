@@ -65,3 +65,20 @@ Enable Firebase's built-in offline persistence so data works offline.
 3. Open Chrome DevTools -> Application tab -> Service Workers, and verify `sw.js` is registered and active.
 4. **Offline Test**: In the Network tab, set throttling to "Offline" and refresh the page. Verify the app still loads completely and data is visible.
 5. **Install Test**: Verify the "Install App" prompt appears in the browser's address bar.
+
+## 2026-04-21: Audit & Fixes Implementation
+
+### Findings from Codebase Audit
+Following the initial deployment, a comprehensive audit revealed a few critical misses and areas for optimization:
+1. **Missing Icons in Pre-cache:** The app icons (`icon-192x192.png` and `icon-512x512.png`) were missing from the `ASSETS_TO_CACHE` array in `sw.js`.
+2. **Missing Firebase SDKs in Pre-cache:** The Firebase JS libraries (`firebase-app-compat.js` and `firebase-firestore-compat.js`) from Google's CDN were not pre-cached. This breaks the app on full offline loads.
+3. **Suboptimal Caching Strategy:** The implemented `sw.js` used a **"Network First"** strategy for everything, contradicting the planned "Cache First" strategy. This causes the app to stall on slow connections ("Lie-Fi").
+4. **Firestore API Interference Risk:** The Service Worker needs to explicitly **ignore** requests to `firestore.googleapis.com` because Firestore handles its own offline caching (`enablePersistence`), and SW interference can cause sync bugs.
+
+### Executed Fixes
+
+#### [MODIFY] sw.js
+- **Update `ASSETS_TO_CACHE`**: Added the icon paths and Firebase CDN URLs.
+- **Change Fetch Strategy**: Implemented a **"Stale-While-Revalidate"** pattern for static assets (ensures instant loading from cache while updating in the background).
+- **Add Firestore Exclusion**: Added explicit bypass for `firestore.googleapis.com`.
+- **Allow Cross-Origin Caching**: Updated caching logic to handle `cors` requests for external CDNs.
